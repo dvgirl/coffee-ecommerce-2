@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminOrderItem } from "@/lib/admin-order-api";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
 
@@ -118,7 +119,7 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
               </tr>
             </thead>
             <tbody>
-              {order.items.map((item, index) => (
+              {order.items.map((item: AdminOrderItem, index: number) => (
                 <tr key={`${item.productId}-${index}`} className="border-b border-slate-200 last:border-none">
                   <td className="px-3 py-2 text-slate-900">{item.name}</td>
                   <td className="px-3 py-2 text-slate-700">{item.variant}</td>

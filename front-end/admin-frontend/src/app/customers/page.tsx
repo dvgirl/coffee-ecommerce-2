@@ -1,14 +1,69 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import { customerSegments } from "@/lib/admin-data";
-
-const customers = [
-  { name: "Aanya Verma", segment: "Club members", lifetimeValue: "$642", frequency: "Every 24 days", note: "Buys subscriptions and seasonal teas." },
-  { name: "Daniel Roy", segment: "Wholesale partners", lifetimeValue: "$8,420", frequency: "Every 11 days", note: "Cafe partner, stable espresso reorder pattern." },
-  { name: "Nisha Shah", segment: "Gift buyers", lifetimeValue: "$184", frequency: "Quarterly", note: "Responds strongly to curation bundles." },
-];
+import { getUsers, type AdminUserRecord } from "@/lib/admin-user-api";
 
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<AdminUserRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      try {
+        const response = await getUsers(1, 20); // Get first 20 customers
+        setCustomers(response.items);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load customers");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <AdminTopbar
+          title="Customer intelligence"
+          description="Guide retention, service prioritization, and targeting with a focused CRM-facing dashboard."
+          badge="CRM view"
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-muted">Loading customers...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <AdminTopbar
+          title="Customer intelligence"
+          description="Guide retention, service prioritization, and targeting with a focused CRM-facing dashboard."
+          badge="CRM view"
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500">
+              <p className="font-medium">Error loading customers</p>
+              <p className="text-sm text-muted mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <AdminTopbar
@@ -33,21 +88,26 @@ export default function CustomersPage() {
             ))}
           </div>
         </AdminCard>
-        <AdminCard title="High context customers" eyebrow="Relationship notes">
+        <AdminCard title="Customer list" eyebrow="Recent customers">
           <div className="grid gap-4">
             {customers.map((customer) => (
-              <div key={customer.name} className="rounded-[1.4rem] border border-black/6 bg-background p-5">
+              <div key={customer.id} className="rounded-[1.4rem] border border-black/6 bg-background p-5">
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <p className="text-lg font-semibold text-foreground">{customer.name}</p>
-                    <p className="mt-1 text-sm text-muted">{customer.segment}</p>
+                    <p className="mt-1 text-sm text-muted">{customer.phoneNumber}</p>
                   </div>
                   <div className="text-left md:text-right">
-                    <p className="font-bold text-primary">{customer.lifetimeValue}</p>
-                    <p className="text-sm text-muted">{customer.frequency}</p>
+                    <p className={`text-sm font-bold ${customer.isVerified ? 'text-green-600' : 'text-amber-600'}`}>
+                      {customer.isVerified ? 'Verified' : 'Unverified'}
+                    </p>
+                    <p className="text-sm text-muted">{customer.addressesCount} addresses</p>
                   </div>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-muted">{customer.note}</p>
+                <p className="mt-4 text-sm leading-6 text-muted">
+                  Joined {new Date(customer.createdAt).toLocaleDateString()}
+                  {customer.lastLoginAt && ` • Last login ${new Date(customer.lastLoginAt).toLocaleDateString()}`}
+                </p>
               </div>
             ))}
           </div>

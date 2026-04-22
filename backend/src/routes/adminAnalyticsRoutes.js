@@ -1,0 +1,22 @@
+const express = require("express");
+const { protect } = require("../middlewares/authMiddleware");
+const {
+  getOverviewStats,
+  getRevenueSeries,
+  getChannelPerformance,
+  getFulfillmentQueue,
+  getProductInventory,
+} = require("../controllers/adminAnalyticsController");
+
+const router = express.Router();
+
+// All admin routes require authentication
+router.use(protect);
+
+router.get("/overview", getOverviewStats);
+router.get("/revenue-series", getRevenueSeries);
+router.get("/channels", getChannelPerformance);
+router.get("/fulfillment-queue", getFulfillmentQueue);
+router.get("/inventory", getProductInventory);
+
+module.exports = router;

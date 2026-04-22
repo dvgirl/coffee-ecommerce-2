@@ -10,6 +10,8 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
+const adminUserRoutes = require("./routes/adminUserRoutes");
+const adminAnalyticsRoutes = require("./routes/adminAnalyticsRoutes");
 const notFound = require("./middlewares/notFound");
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -53,6 +55,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/products/upload-image", uploadRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/admin/users", adminUserRoutes);
+app.use("/api/admin/analytics", adminAnalyticsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

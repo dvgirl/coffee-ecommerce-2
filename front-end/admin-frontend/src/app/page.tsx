@@ -1,18 +1,109 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import {
-  activityFeed,
-  adminOverviewStats,
-  channelPerformance,
-  customerSegments,
-  fulfillmentQueue,
-  revenueSeries,
+  getAdminOverviewStats,
+  getRevenueSeriesData,
+  getChannelPerformanceData,
+  getFulfillmentQueueData,
   teamTasks,
+  activityFeed,
+  customerSegments,
+  type AdminOverviewStat,
+  type AdminRevenueSeriesItem,
+  type AdminChannelPerformance,
+  type AdminFulfillmentQueueItem,
 } from "@/lib/admin-data";
 import { cn } from "@/lib/utils";
+import {
+  BellRing,
+  ChartNoAxesCombined,
+  CreditCard,
+  MessageSquareMore,
+  PackageCheck,
+  ShieldCheck,
+  ShoppingBag,
+  Users,
+} from "lucide-react";
+
+const iconMap = {
+  CreditCard,
+  ShoppingBag,
+  Users,
+  PackageCheck,
+};
 
 export default function OverviewPage() {
-  const peakRevenue = Math.max(...revenueSeries.map((item) => item.amount));
+  const [overviewStats, setOverviewStats] = useState<AdminOverviewStat[]>([]);
+  const [revenueSeries, setRevenueSeries] = useState<AdminRevenueSeriesItem[]>([]);
+  const [channelPerformance, setChannelPerformance] = useState<AdminChannelPerformance[]>([]);
+  const [fulfillmentQueue, setFulfillmentQueue] = useState<AdminFulfillmentQueueItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const [stats, series, channels, queue] = await Promise.all([
+          getAdminOverviewStats(),
+          getRevenueSeriesData(),
+          getChannelPerformanceData(),
+          getFulfillmentQueueData(),
+        ]);
+
+        setOverviewStats(stats);
+        setRevenueSeries(series);
+        setChannelPerformance(channels);
+        setFulfillmentQueue(queue);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const peakRevenue = revenueSeries.length > 0 ? Math.max(...revenueSeries.map((item) => item.amount)) : 0;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <AdminTopbar
+          title="Store performance at a glance"
+          description="Track revenue, fulfillment velocity, retention, and execution risk from a dedicated admin frontend."
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-muted">Loading dashboard data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <AdminTopbar
+          title="Store performance at a glance"
+          description="Track revenue, fulfillment velocity, retention, and execution risk from a dedicated admin frontend."
+        />
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500">
+              <p className="font-medium">Error loading dashboard</p>
+              <p className="text-sm text-muted mt-1">{error}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -22,30 +113,37 @@ export default function OverviewPage() {
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {adminOverviewStats.map((stat) => (
-          <AdminCard key={stat.title}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted">{stat.title}</p>
-                <p className="mt-3 text-3xl font-bold tracking-[-0.04em] text-foreground">{stat.value}</p>
-                <div className="mt-3 flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
-                      stat.tone === "positive" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700",
-                    )}
-                  >
-                    {stat.delta}
-                  </span>
-                  <span className="text-xs text-muted">{stat.detail}</span>
+        {overviewStats.map((stat) => {
+          const IconComponent = iconMap[stat.title.includes("revenue") ? "CreditCard" :
+                                   stat.title.includes("Orders") ? "ShoppingBag" :
+                                   stat.title.includes("customers") ? "Users" : "PackageCheck"];
+
+          return (
+            <AdminCard key={stat.title}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium text-muted">{stat.title}</p>
+                  <p className="mt-3 text-3xl font-bold tracking-[-0.04em] text-foreground">{stat.value}</p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.18em]",
+                        stat.tone === "positive" ? "bg-emerald-100 text-emerald-700" :
+                        stat.tone === "warning" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700",
+                      )}
+                    >
+                      {stat.delta}
+                    </span>
+                    <span className="text-xs text-muted">{stat.detail}</span>
+                  </div>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                  <IconComponent className="h-6 w-6" />
                 </div>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                <stat.icon className="h-6 w-6" />
-              </div>
-            </div>
-          </AdminCard>
-        ))}
+            </AdminCard>
+          );
+        })}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">

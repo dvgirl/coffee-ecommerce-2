@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { X, Coffee, ArrowRight, CheckCircle2, RotateCcw } from "lucide-react";
-import { PRODUCTS } from "@/lib/data";
+import { getProducts, type ProductRecord } from "@/lib/data";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +46,21 @@ export default function CoffeeQuiz({ isOpen, onClose }: QuizProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isCalculating, setIsCalculating] = useState(false);
-  const [recommendation, setRecommendation] = useState<typeof PRODUCTS[0] | null>(null);
+  const [recommendation, setRecommendation] = useState<ProductRecord | null>(null);
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+
+  // Fetch products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getProducts({ limit: 100 });
+        setProducts(response.items);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -82,10 +96,10 @@ export default function CoffeeQuiz({ isOpen, onClose }: QuizProps) {
                       : "body";
 
       // Simple scoring algorithm: Find coffees in preferred category, then sort by preferred trait
-      let matches = PRODUCTS.filter(p => p.category === prefCategory);
+      let matches = products.filter(p => p.category === prefCategory);
       
       // Fallback if no category matches (shouldn't happen with our data)
-      if (matches.length === 0) matches = PRODUCTS;
+      if (matches.length === 0) matches = products;
 
       matches.sort((a, b) => {
         const valA = a.stats ? a.stats[prefTrait as keyof typeof a.stats] : 3;

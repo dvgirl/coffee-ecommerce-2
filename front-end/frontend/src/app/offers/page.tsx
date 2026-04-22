@@ -3,11 +3,41 @@
 import { motion } from "framer-motion";
 import { Coffee, Tag, Sparkles, ArrowRight, Gift, Percent, Clock, Star } from "lucide-react";
 import Link from "next/link";
-import { PRODUCTS } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { getProducts, type ProductRecord } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export default function OffersPage() {
-  const highlightedProducts = PRODUCTS.slice(0, 3);
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getProducts({ limit: 100 });
+        setProducts(response.items);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const highlightedProducts = products.slice(0, 3);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-40 pb-24 flex items-center justify-center px-4">
+        <div className="glass w-full max-w-md rounded-[2.5rem] border border-black/5 bg-white/50 p-12 text-center shadow-xl">
+          <div className="mx-auto mb-6 h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          <h2 className="text-2xl font-serif font-bold text-foreground">Loading offers</h2>
+          <p className="mt-3 text-muted">Fetching our latest deals...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen overflow-hidden">

@@ -4,14 +4,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useCart, CartItem } from "@/context/CartContext";
 import { Trash2, Plus, Minus, ArrowRight, Coffee, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { PRODUCTS } from "@/lib/data";
+import { useEffect, useState } from "react";
+import { getProducts, type ProductRecord } from "@/lib/data";
 
 export default function CartPage() {
   const { cart, addToCart, removeFromCart, updateQuantity, cartTotal, isCartReady } = useCart();
+  const [products, setProducts] = useState<ProductRecord[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await getProducts({ limit: 100 });
+        setProducts(response.items);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   // Smart Upsell Logic
   const hasBeverage = cart.some(item => {
-    const p = PRODUCTS.find(p => p.id === item.id);
+    const p = products.find(p => p.id === item.id);
     return p && (p.category === "Coffee" || p.category === "Tea");
   });
   const hasPairing = cart.some(item => item.id === 13 || item.id === 15);
@@ -27,7 +44,7 @@ export default function CartPage() {
 
   // Hide upsell if it's already in the cart
   const isUpsellInCart = cart.some(item => item.id === upsellId);
-  const upsellProduct = isUpsellInCart ? null : PRODUCTS.find(p => p.id === upsellId);
+  const upsellProduct = isUpsellInCart ? null : products.find(p => p.id === upsellId);
 
   const handleAddUpsell = () => {
     if (!upsellProduct) return;
@@ -44,7 +61,7 @@ export default function CartPage() {
     addToCart(cartItem);
   };
 
-  if (!isCartReady) {
+  if (!isCartReady || loadingProducts) {
     return (
       <div className="min-h-screen pt-40 pb-24 flex items-center justify-center px-4">
         <div className="glass w-full max-w-md rounded-[2.5rem] border border-black/5 bg-white/50 p-12 text-center shadow-xl">

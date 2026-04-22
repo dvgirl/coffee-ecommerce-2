@@ -421,10 +421,6 @@ export default function OrdersPage() {
                                       <span>Tax</span>
                                       <span>${order.tax.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-slate-600">
-                                      <span>Coupon</span>
-                                      <span>{order.discountLabel || "—"}</span>
-                                    </div>
                                     <div className="border-t border-slate-200 pt-3 font-semibold text-slate-900">
                                       <div className="flex justify-between">
                                         <span>Total</span>
