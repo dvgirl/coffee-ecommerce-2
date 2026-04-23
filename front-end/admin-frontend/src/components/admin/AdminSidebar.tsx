@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ChartColumn, ChevronRight, Package, Settings, ShoppingCart, Store, Users } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ChartColumn, ChevronRight, LogOut, Package, Settings, ShoppingCart, Store, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logoutAdmin } from "@/lib/admin-auth";
 
 const adminLinks = [
   { label: "Overview", href: "/", icon: ChartColumn },
@@ -16,6 +18,19 @@ const adminLinks = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await logoutAdmin();
+      router.replace("/login");
+      router.refresh();
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
     <aside className="w-full lg:w-80 shrink-0 rounded-[2rem] border border-black/8 bg-[linear-gradient(180deg,_rgba(250,246,240,0.96)_0%,_rgba(255,255,255,0.96)_100%)] p-5 shadow-[0_20px_60px_rgba(42,28,22,0.08)] lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] h-auto">
@@ -76,6 +91,15 @@ export default function AdminSidebar() {
               <p className="text-sm text-muted">Operations lead</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            disabled={loggingOut}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-slate-50 px-4 py-3 text-sm font-semibold text-foreground transition hover:bg-white disabled:cursor-not-allowed disabled:text-slate-400"
+          >
+            <LogOut className="h-4 w-4" />
+            {loggingOut ? "Signing out..." : "Logout"}
+          </button>
         </div>
       </div>
     </aside>

@@ -25,6 +25,13 @@ export type AuthSession = {
   user: AuthUser;
 };
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
+const SESSION_VALIDATION_WINDOW_MS = 60 * 1000;
+
+let lastValidatedToken = "";
+let lastValidatedAt = 0;
+
 const dispatchAuthChange = () => {
   window.dispatchEvent(new Event("auth-changed"));
 };
@@ -89,8 +96,55 @@ export const resetGuestSessionId = () => {
 
 export const getAuthToken = () => getStoredSession()?.token || "";
 
+export const getSessionUser = () => getStoredSession()?.user || null;
+
+export const getVerifiedAuthToken = async () => {
+  const session = getStoredSession();
+  const token = session?.token || "";
+
+  if (!token) {
+    return "";
+  }
+
+  const now = Date.now();
+  if (
+    token === lastValidatedToken &&
+    now - lastValidatedAt < SESSION_VALIDATION_WINDOW_MS
+  ) {
+    return token;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (response.ok) {
+      lastValidatedToken = token;
+      lastValidatedAt = now;
+      return token;
+    }
+
+    if (response.status === 401) {
+      clearSession({ resetGuestSession: false });
+      lastValidatedToken = "";
+      lastValidatedAt = 0;
+      return "";
+    }
+
+    return token;
+  } catch {
+    return token;
+  }
+};
+
 export const clearSession = (options?: { resetGuestSession?: boolean }) => {
   window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  lastValidatedToken = "";
+  lastValidatedAt = 0;
 
   if (options?.resetGuestSession) {
     resetGuestSessionId();

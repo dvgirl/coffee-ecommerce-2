@@ -2,21 +2,25 @@ const Category = require("../models/Category");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 
+const serializeCategory = (category) => ({
+  id: String(category._id),
+  name: category.name,
+  image: String(category.image || "").trim(),
+  active: Boolean(category.active),
+});
+
 const listCategories = asyncHandler(async (_req, res) => {
   const categories = await Category.find().sort({ name: 1 }).lean();
 
   res.status(200).json({
     success: true,
-    data: categories.map((category) => ({
-      id: String(category._id),
-      name: category.name,
-      active: Boolean(category.active),
-    })),
+    data: categories.map(serializeCategory),
   });
 });
 
 const createCategory = asyncHandler(async (req, res) => {
   const name = String(req.body.name || "").trim();
+  const image = String(req.body.image || "").trim();
   if (!name) {
     throw new ApiError(400, "Category name is required");
   }
@@ -26,23 +30,20 @@ const createCategory = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Category already exists");
   }
 
-  const category = await Category.create({ name });
+  const category = await Category.create({ name, image });
   res.status(201).json({
     success: true,
-    data: {
-      id: String(category._id),
-      name: category.name,
-      active: Boolean(category.active),
-    },
+    data: serializeCategory(category),
   });
 });
 
 const updateCategory = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const name = req.body.name !== undefined ? String(req.body.name || "").trim() : undefined;
+  const image = req.body.image !== undefined ? String(req.body.image || "").trim() : undefined;
   const active = req.body.active;
 
-  if (name === undefined && active === undefined) {
+  if (name === undefined && image === undefined && active === undefined) {
     throw new ApiError(400, "No updates provided");
   }
 
@@ -59,6 +60,7 @@ const updateCategory = asyncHandler(async (req, res) => {
 
   const updateData = {};
   if (name !== undefined) updateData.name = name;
+  if (image !== undefined) updateData.image = image;
   if (active !== undefined) updateData.active = Boolean(active);
 
   const category = await Category.findByIdAndUpdate(id, updateData, {
@@ -72,11 +74,7 @@ const updateCategory = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: {
-      id: String(category._id),
-      name: category.name,
-      active: Boolean(category.active),
-    },
+    data: serializeCategory(category),
   });
 });
 

@@ -10,7 +10,11 @@ import {
   ReactNode,
 } from "react";
 
-import { getAuthToken, getGuestSessionId, getStoredSession } from "@/lib/auth";
+import {
+  getGuestSessionId,
+  getStoredSession,
+  getVerifiedAuthToken,
+} from "@/lib/auth";
 
 export type Variant = {
   weight: string;
@@ -67,7 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const fetchCart = useCallback(async () => {
-    const token = getAuthToken();
+    const token = await getVerifiedAuthToken();
     const sessionId = getGuestSessionId();
     const url = token
       ? `${API_BASE_URL}/cart/me`
@@ -88,7 +92,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const attachGuestCartToUser = useCallback(async () => {
-    const token = getAuthToken();
+    const token = await getVerifiedAuthToken();
 
     if (!token) {
       return null;
@@ -170,7 +174,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addToCart = (item: CartItem) => {
     void (async () => {
       try {
-        const token = getAuthToken();
+        const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
         const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
 
@@ -202,7 +206,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const removeFromCart = (id: number, variant: string) => {
     void (async () => {
       try {
-        const token = getAuthToken();
+        const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
         const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
 
@@ -239,7 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     void (async () => {
       try {
-        const token = getAuthToken();
+        const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
         const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
 
@@ -273,7 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const clearCart = () => {
     void (async () => {
       try {
-        const token = getAuthToken();
+        const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
         const url = token ? `${API_BASE_URL}/cart/me/clear` : `${API_BASE_URL}/cart/clear`;
 

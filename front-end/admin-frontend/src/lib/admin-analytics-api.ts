@@ -1,3 +1,5 @@
+import { adminFetch } from "@/lib/admin-api";
+
 export type AdminOverviewStat = {
   title: string;
   value: string;
@@ -37,9 +39,6 @@ export type AdminProductInventoryItem = {
   nextBatch: string;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
-
 const parseResponse = async <T>(response: Response): Promise<T> => {
   const payload = await response.json();
   if (!response.ok) {
@@ -49,7 +48,7 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
 };
 
 export async function getOverviewStats(): Promise<AdminOverviewStat[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/overview`, {
+  const response = await adminFetch(`/admin/analytics/overview`, {
     cache: "no-store",
   });
 
@@ -57,7 +56,7 @@ export async function getOverviewStats(): Promise<AdminOverviewStat[]> {
 }
 
 export async function getRevenueSeries(): Promise<AdminRevenueSeriesItem[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/revenue-series`, {
+  const response = await adminFetch(`/admin/analytics/revenue-series`, {
     cache: "no-store",
   });
 
@@ -65,7 +64,7 @@ export async function getRevenueSeries(): Promise<AdminRevenueSeriesItem[]> {
 }
 
 export async function getChannelPerformance(): Promise<AdminChannelPerformance[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/channels`, {
+  const response = await adminFetch(`/admin/analytics/channels`, {
     cache: "no-store",
   });
 
@@ -73,7 +72,7 @@ export async function getChannelPerformance(): Promise<AdminChannelPerformance[]
 }
 
 export async function getFulfillmentQueue(): Promise<AdminFulfillmentQueueItem[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/fulfillment-queue`, {
+  const response = await adminFetch(`/admin/analytics/fulfillment-queue`, {
     cache: "no-store",
   });
 
@@ -81,7 +80,7 @@ export async function getFulfillmentQueue(): Promise<AdminFulfillmentQueueItem[]
 }
 
 export async function getProductInventory(): Promise<AdminProductInventoryItem[]> {
-  const response = await fetch(`${API_BASE_URL}/admin/analytics/inventory`, {
+  const response = await adminFetch(`/admin/analytics/inventory`, {
     cache: "no-store",
   });
 

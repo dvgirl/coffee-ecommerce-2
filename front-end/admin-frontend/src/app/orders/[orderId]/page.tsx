@@ -1,19 +1,9 @@
 import Link from "next/link";
-import { AdminOrderItem } from "@/lib/admin-order-api";
+import { AdminOrderItem, getOrderById } from "@/lib/admin-order-api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
-
-const fetchOrder = async (orderId: string) => {
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error("Order not found");
-  }
-  const payload = await response.json();
-  return payload.data;
-};
-
-export default async function OrderDetailPage({ params }: { params: { orderId: string } }) {
-  const order = await fetchOrder(params.orderId);
+export default async function OrderDetailPage({ params }: { params: Promise<{ orderId: string }> }) {
+  const { orderId } = await params;
+  const order = await getOrderById(Number(orderId));
 
   return (
     <main className="space-y-6 pb-8">

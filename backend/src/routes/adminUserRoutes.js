@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../middlewares/authMiddleware");
+const { protect, requireAdmin } = require("../middlewares/authMiddleware");
 const {
   getAllUsers,
   getUserById,
@@ -10,7 +10,7 @@ const {
 const router = express.Router();
 
 // All admin routes require authentication
-router.use(protect);
+router.use(protect, requireAdmin);
 
 router.get("/", getAllUsers);
 router.get("/:userId", getUserById);

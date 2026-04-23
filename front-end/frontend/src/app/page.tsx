@@ -7,33 +7,44 @@ import ImageBannerSlider from "@/components/home/ImageBannerSlider";
 import FloatingCups from "@/components/home/FloatingCups";
 import ScrollAnimation from "@/components/home/ScrollAnimation";
 import DeferredVideo from "@/components/home/DeferredVideo";
-import { getProducts } from "@/lib/product-api";
+import { getCategories, getProducts, type CategoryRecord } from "@/lib/product-api";
 
-const CATEGORIES = [
-  { name: "Coffee", img: "/categories/coffee.png", href: "/shop?category=Coffee" },
-  { name: "Tea", img: "/categories/tea.png", href: "/shop?category=Tea" },
-  { name: "Spices", img: "/categories/spices.png", href: "/shop?category=Spices" },
-  { name: "Dryfruit", img: "/categories/dryfruit.png", href: "/shop?category=Dryfruit" },
-  { name: "Offers", img: "/categories/offers.png", href: "/shop?category=Offers" },
-];
+const fallbackCategoryImage = (name: string) => {
+  const normalized = String(name).trim().toLowerCase();
 
-const CategoryMenu = () => {
+  switch (normalized) {
+    case "coffee":
+      return "/categories/coffee.png";
+    case "tea":
+      return "/categories/tea.png";
+    case "spices":
+      return "/categories/spices.png";
+    case "dryfruit":
+    case "dry fruit":
+      return "/categories/dryfruit.png";
+    case "offers":
+      return "/categories/offers.png";
+    default:
+      return "/categories/coffee.png";
+  }
+};
+
+const CategoryMenu = ({ categories }: { categories: CategoryRecord[] }) => {
   return (
     <section className="pt-6 pb-12 md:pt-8 md:pb-16 bg-white">
       <div className="container mx-auto px-6">
         <div className="flex overflow-x-auto md:grid md:grid-cols-5 gap-8 pb-4 pt-6 scrollbar-hide snap-x snap-mandatory justify-start md:justify-center items-center">
-          {CATEGORIES.map((cat, i) => (
+          {categories.map((cat, i) => (
             <Link
               key={i}
-              href={cat.href}
+              href={`/shop?category=${encodeURIComponent(cat.name)}`}
               className="flex flex-col items-center gap-6 group min-w-[110px] snap-center transition-all duration-700"
             >
               <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border border-black/5 group-hover:border-primary/20 transition-all duration-700 shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:shadow-[0_20px_50px_rgba(178,124,78,0.15)] group-hover:-translate-y-3 bg-white">
-                <Image
-                  src={cat.img}
+                <img
+                  src={cat.image || fallbackCategoryImage(cat.name)}
                   alt={cat.name}
-                  fill
-                  className="object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-700" />
               </div>
@@ -52,17 +63,30 @@ const CategoryMenu = () => {
 };
 
 export default async function Home() {
-  const arrivalsResponse = await getProducts({
-    page: 1,
-    limit: 3,
-    sort: "date-new",
-  }).catch(() => ({
-    items: [],
-    filters: { categories: [] },
-    pagination: { page: 1, limit: 3, total: 0, totalPages: 0, hasNextPage: false },
-  }));
+  const [arrivalsResponse, categoriesResponse] = await Promise.all([
+    getProducts({
+      page: 1,
+      limit: 3,
+      sort: "date-new",
+    }).catch(() => ({
+      items: [],
+      filters: { categories: [] },
+      pagination: { page: 1, limit: 3, total: 0, totalPages: 0, hasNextPage: false },
+    })),
+    getCategories().catch(() => [] as CategoryRecord[]),
+  ]);
 
   const newArrivals = arrivalsResponse.items;
+  const activeCategories = categoriesResponse.filter((category) => category.active);
+  const featuredCategories = activeCategories.length > 0
+    ? activeCategories.slice(0, 5)
+    : [
+        { id: "coffee", name: "Coffee", image: "/categories/coffee.png", active: true },
+        { id: "tea", name: "Tea", image: "/categories/tea.png", active: true },
+        { id: "spices", name: "Spices", image: "/categories/spices.png", active: true },
+        { id: "dryfruit", name: "Dryfruit", image: "/categories/dryfruit.png", active: true },
+        { id: "offers", name: "Offers", image: "/categories/offers.png", active: true },
+      ];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -70,7 +94,7 @@ export default async function Home() {
       <ImageBannerSlider />
 
       {/* Round Menu Categories */}
-      <CategoryMenu />
+      <CategoryMenu categories={featuredCategories} />
 
       {/* Scroll Indicator */}
       <ScrollAnimation animationType="bounce" className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center text-muted">
@@ -166,62 +190,23 @@ export default async function Home() {
           </ScrollAnimation>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                id: "Coffee",
-                title: "Artisan Coffee",
-                desc: "Single-origin beans and masterful blends roasted to perfection.",
-                icon: Coffee,
-                img: "/categories/coffee.png",
-                bgClass: "from-[#8B5A2B]/20 to-black",
-                delay: 0
-              },
-              {
-                id: "Tea",
-                title: "Rare Teas",
-                desc: "Hand-rolled oolongs, ceremonial matcha, and delicate white teas.",
-                icon: Leaf,
-                img: "/categories/tea.png",
-                bgClass: "from-[#4CAF50]/20 to-black",
-                delay: 0.2
-              },
-              {
-                id: "Spices",
-                title: "Exotic Spices",
-                desc: "Kashmiri Saffron, True Ceylon Cinnamon, and Tellicherry Black Pepper.",
-                icon: Star,
-                img: "/categories/spices.png",
-                bgClass: "from-[#FF9800]/20 to-black",
-                delay: 0.4
-              },
-              {
-                id: "Dryfruit",
-                title: "Premium Dry Fruits",
-                desc: "Jumbo Medjool Dates, Afghan Pistachios, and Turkish Figs.",
-                icon: Package,
-                img: "/categories/dryfruit.png",
-                bgClass: "from-[#9C27B0]/20 to-black",
-                delay: 0.6
-              }
-            ].map((category) => (
+            {featuredCategories.slice(0, 4).map((category, index) => (
               <ScrollAnimation
                 key={category.id}
-                delay={category.delay}
+                delay={index * 0.2}
                 className="group relative"
               >
-                <Link href={`/shop?category=${category.id}`} className="block h-full">
+                <Link href={`/shop?category=${encodeURIComponent(category.name)}`} className="block h-full">
                   <div className={cn(
                     "h-full p-8 rounded-3xl glass border border-white/5 relative overflow-hidden flex flex-col items-start text-left transition-all duration-500",
                     "hover:shadow-[0_0_40px_rgba(178,124,78,0.05)] hover:border-black/10"
                   )}>
                     {/* Background Image */}
                     <div className="absolute inset-0 z-0">
-                      <Image
-                        src={category.img}
-                        alt={category.title}
-                        fill
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        className="object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+                      <img
+                        src={category.image || fallbackCategoryImage(category.name)}
+                        alt={category.name}
+                        className="h-full w-full object-cover opacity-10 group-hover:opacity-20 transition-opacity duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
                     </div>
@@ -229,10 +214,20 @@ export default async function Home() {
                     {/* Content */}
                     <div className="relative z-10 w-full">
                       <div className="w-14 h-14 rounded-2xl bg-black/5 flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors border border-black/5 group-hover:border-primary/30 group-hover:scale-110 duration-500">
-                        <category.icon className="w-6 h-6 text-primary transition-colors" />
+                        {index % 4 === 0 ? (
+                          <Coffee className="w-6 h-6 text-primary transition-colors" />
+                        ) : index % 4 === 1 ? (
+                          <Leaf className="w-6 h-6 text-primary transition-colors" />
+                        ) : index % 4 === 2 ? (
+                          <Star className="w-6 h-6 text-primary transition-colors" />
+                        ) : (
+                          <Package className="w-6 h-6 text-primary transition-colors" />
+                        )}
                       </div>
-                      <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-foreground">{category.title}</h3>
-                      <p className="text-muted text-sm leading-relaxed mb-8 group-hover:text-foreground transition-colors">{category.desc}</p>
+                      <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-foreground">{category.name}</h3>
+                      <p className="text-muted text-sm leading-relaxed mb-8 group-hover:text-foreground transition-colors">
+                        Explore the {category.name} collection from the same category records managed in the admin panel.
+                      </p>
 
                       <div className="mt-auto flex items-center text-sm font-bold text-primary transition-colors gap-2">
                         Explore <ArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform duration-300" />

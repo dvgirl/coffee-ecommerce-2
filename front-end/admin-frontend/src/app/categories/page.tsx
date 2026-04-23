@@ -8,17 +8,21 @@ import {
   deleteCategory,
   getCategories,
   type AdminCategoryRecord,
+  uploadCategoryImage,
   updateCategory,
 } from "@/lib/admin-product-api";
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<AdminCategoryRecord[]>([]);
   const [newCategory, setNewCategory] = useState("");
+  const [newCategoryImageFile, setNewCategoryImageFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeChangeId, setActiveChangeId] = useState<string | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [draftCategoryName, setDraftCategoryName] = useState("");
+  const [draftCategoryImage, setDraftCategoryImage] = useState("");
+  const [draftCategoryImageFile, setDraftCategoryImageFile] = useState<File | null>(null);
   const [rowLoadingId, setRowLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,8 +55,13 @@ export default function CategoriesPage() {
     setError(null);
 
     try {
-      await createCategory({ name: newCategory.trim() });
+      const uploadedImage = newCategoryImageFile
+        ? await uploadCategoryImage(newCategoryImageFile)
+        : "";
+
+      await createCategory({ name: newCategory.trim(), image: uploadedImage });
       setNewCategory("");
+      setNewCategoryImageFile(null);
       await loadCategories();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create category.");
@@ -64,12 +73,16 @@ export default function CategoriesPage() {
   const handleStartEdit = (category: AdminCategoryRecord) => {
     setEditingCategoryId(category.id);
     setDraftCategoryName(category.name);
+    setDraftCategoryImage(category.image || "");
+    setDraftCategoryImageFile(null);
     setError(null);
   };
 
   const handleCancelEdit = () => {
     setEditingCategoryId(null);
     setDraftCategoryName("");
+    setDraftCategoryImage("");
+    setDraftCategoryImageFile(null);
   };
 
   const handleSaveCategory = async (categoryId: string) => {
@@ -82,7 +95,14 @@ export default function CategoriesPage() {
     setError(null);
 
     try {
-      await updateCategory(categoryId, { name: draftCategoryName.trim() });
+      const uploadedImage = draftCategoryImageFile
+        ? await uploadCategoryImage(draftCategoryImageFile)
+        : draftCategoryImage.trim();
+
+      await updateCategory(categoryId, {
+        name: draftCategoryName.trim(),
+        image: uploadedImage,
+      });
       await loadCategories();
       handleCancelEdit();
     } catch (err) {
@@ -151,6 +171,21 @@ export default function CategoriesPage() {
                 className="w-full rounded-3xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
               />
             </label>
+            <label className="space-y-2 text-sm">
+              <span className="font-medium text-foreground">Category image</span>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] || null;
+                  setNewCategoryImageFile(file);
+                }}
+                className="w-full rounded-3xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
+              />
+            </label>
+            {newCategoryImageFile ? (
+              <p className="text-xs text-muted">Selected: {newCategoryImageFile.name}</p>
+            ) : null}
             {error ? <p className="text-sm text-rose-700">{error}</p> : null}
             <button
               type="submit"
@@ -170,6 +205,7 @@ export default function CategoriesPage() {
               <thead className="bg-background">
                 <tr className="text-xs uppercase tracking-[0.16em] text-muted">
                   <th className="px-4 py-3 font-bold">Name</th>
+                  <th className="px-4 py-3 font-bold">Image</th>
                   <th className="px-4 py-3 font-bold">Identifier</th>
                   <th className="px-4 py-3 font-bold">Status</th>
                   <th className="px-4 py-3 font-bold">Actions</th>
@@ -184,13 +220,43 @@ export default function CategoriesPage() {
                     <tr key={category.id}>
                       <td className="px-4 py-4 text-sm text-foreground">
                         {isEditing ? (
-                          <input
-                            value={draftCategoryName}
-                            onChange={(event) => setDraftCategoryName(event.target.value)}
-                            className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
-                          />
+                          <div className="space-y-3">
+                            <input
+                              value={draftCategoryName}
+                              onChange={(event) => setDraftCategoryName(event.target.value)}
+                              className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
+                            />
+                            <input
+                              type="file"
+                              accept="image/png,image/jpeg,image/webp"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0] || null;
+                                setDraftCategoryImageFile(file);
+                              }}
+                              className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
+                            />
+                            {draftCategoryImageFile ? (
+                              <p className="text-xs text-muted">Selected: {draftCategoryImageFile.name}</p>
+                            ) : draftCategoryImage ? (
+                              <p className="text-xs text-muted">Current image kept unless you upload a new one.</p>
+                            ) : null}
+                          </div>
                         ) : (
                           category.name
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-muted">
+                        {category.image ? (
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={category.image}
+                              alt={category.name}
+                              className="h-12 w-12 rounded-2xl border border-black/10 object-cover"
+                            />
+                            <span className="max-w-[220px] truncate">{category.image}</span>
+                          </div>
+                        ) : (
+                          "No image"
                         )}
                       </td>
                       <td className="px-4 py-4 text-sm text-muted">{category.id}</td>
@@ -259,7 +325,7 @@ export default function CategoriesPage() {
                 })}
                 {categories.length === 0 && !loading ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-muted">
+                    <td colSpan={5} className="px-4 py-8 text-center text-sm text-muted">
                       No categories have been created yet. Add a category to get started.
                     </td>
                   </tr>

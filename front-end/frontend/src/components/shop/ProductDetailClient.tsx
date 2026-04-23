@@ -103,6 +103,7 @@ export default function ProductDetailClient({
                     src={currentImage}
                     alt={`${product.name} image`}
                     fill
+                    unoptimized
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover"
                   />

@@ -8,7 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import AnnouncementBar from "@/components/home/AnnouncementBar";
-import { clearSession, getStoredSession } from "@/lib/auth";
+import { clearSession, getStoredSession, getVerifiedAuthToken } from "@/lib/auth";
 
 const NAV_LINKS = [
   { name: "Home", href: "/#hero" },
@@ -25,6 +25,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessionUserName, setSessionUserName] = useState("");
   const { cartCount } = useCart();
   const pathname = usePathname();
 
@@ -37,11 +38,20 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    const syncAuthState = () => {
-      setIsAuthenticated(Boolean(getStoredSession()?.token));
+    const syncAuthState = async () => {
+      const session = getStoredSession();
+      setSessionUserName(session?.user?.name || "");
+
+      if (!session?.token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      const verifiedToken = await getVerifiedAuthToken();
+      setIsAuthenticated(Boolean(verifiedToken));
     };
 
-    syncAuthState();
+    void syncAuthState();
     window.addEventListener("storage", syncAuthState);
     window.addEventListener("auth-changed", syncAuthState);
 
@@ -60,6 +70,8 @@ export default function Navbar() {
   }, [isMobileMenuOpen]);
 
   const profileHref = isAuthenticated ? "/profile" : `/login?returnTo=${encodeURIComponent(pathname || "/")}`;
+  const accountLabel = sessionUserName.trim() || "Account";
+  const accountInitial = accountLabel.charAt(0).toUpperCase() || "A";
 
   const handleLogout = () => {
     clearSession({ resetGuestSession: true });
@@ -129,20 +141,33 @@ export default function Navbar() {
 
           {/* Desktop Icons */}
           <div className="hidden items-center gap-2 lg:flex md:gap-3">
-            <Link
-              href={profileHref}
-              className="rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
-            >
-              <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </Link>
-            {isAuthenticated && (
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary"
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href={profileHref}
+                  className="inline-flex items-center gap-3 rounded-2xl border border-black/8 bg-white/70 px-3 py-2.5 text-foreground/80 transition-all duration-300 hover:border-primary/20 hover:text-primary"
+                >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/12 text-xs font-black text-primary">
+                    {accountInitial}
+                  </span>
+                  <span className="max-w-[120px] truncate text-sm font-semibold">{accountLabel}</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-black/8 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/75 transition-all duration-300 hover:border-primary/20 hover:text-primary"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                href={profileHref}
+                className="rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
               >
-                <LogOut className="w-5 h-5" />
-              </button>
+                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              </Link>
             )}
             <Link
               href="/favorites"
@@ -167,9 +192,18 @@ export default function Navbar() {
           <div className="flex items-center gap-2 lg:hidden">
             <Link
               href={profileHref}
-              className="rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary"
+              className={cn(
+                "rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary",
+                isAuthenticated && "border border-black/8 bg-white/70"
+              )}
             >
-              <User className="h-5 w-5" />
+              {isAuthenticated ? (
+                <span className="flex h-5 w-5 items-center justify-center text-[10px] font-black text-primary">
+                  {accountInitial}
+                </span>
+              ) : (
+                <User className="h-5 w-5" />
+              )}
             </Link>
             <Link
               href="/cart"

@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../middlewares/authMiddleware");
+const { protect, requireAdmin } = require("../middlewares/authMiddleware");
 const {
   getOverviewStats,
   getRevenueSeries,
@@ -11,7 +11,7 @@ const {
 const router = express.Router();
 
 // All admin routes require authentication
-router.use(protect);
+router.use(protect, requireAdmin);
 
 router.get("/overview", getOverviewStats);
 router.get("/revenue-series", getRevenueSeries);

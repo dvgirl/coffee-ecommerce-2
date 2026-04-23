@@ -1,35 +1,23 @@
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
+const Address = require("../models/Address");
+const { getUserAddresses, serializeAddress } = require("../services/addressService");
 
-const sanitizeUser = (user) => ({
+const sanitizeUser = (user, addresses = []) => ({
   id: user._id,
   name: user.name,
   phoneNumber: user.phoneNumber,
   isVerified: user.isVerified,
   lastLoginAt: user.lastLoginAt,
   createdAt: user.createdAt,
-  addresses: Array.isArray(user.addresses)
-    ? user.addresses.map((address) => ({
-        id: address._id.toString(),
-        label: address.label,
-        name: address.name,
-        phone: address.phone,
-        address: address.address,
-        apartment: address.apartment || "",
-        company: address.company || "",
-        city: address.city,
-        state: address.state,
-        country: address.country,
-        zip: address.zip,
-        isDefault: address.isDefault || false,
-      }))
-    : [],
+  addresses: addresses.map(serializeAddress),
 });
 
 const getCurrentUser = asyncHandler(async (req, res) => {
+  const addresses = await getUserAddresses(req.user);
   res.status(200).json({
     success: true,
-    data: sanitizeUser(req.user),
+    data: sanitizeUser(req.user, addresses),
   });
 });
 
@@ -80,38 +68,46 @@ const validateAddressPayload = (payload = {}) => {
   return sanitized;
 };
 
-const refreshDefaultAddress = (user, defaultAddressId) => {
-  user.addresses.forEach((address) => {
-    address.isDefault = address._id.toString() === String(defaultAddressId);
-  });
+const refreshDefaultAddress = async (userId, defaultAddressId) => {
+  await Address.updateMany({ user: userId }, { $set: { isDefault: false } });
+
+  if (defaultAddressId) {
+    await Address.updateOne(
+      { _id: defaultAddressId, user: userId },
+      { $set: { isDefault: true } },
+    );
+  }
 };
 
 const listAddresses = asyncHandler(async (req, res) => {
+  const addresses = await getUserAddresses(req.user);
   res.status(200).json({
     success: true,
-    data: sanitizeUser(req.user).addresses,
+    data: addresses.map(serializeAddress),
   });
 });
 
 const createAddress = asyncHandler(async (req, res) => {
   const user = req.user;
   const addressPayload = validateAddressPayload(req.body);
+  const existingAddresses = await getUserAddresses(user);
+  const shouldBeDefault = addressPayload.isDefault || existingAddresses.length === 0;
 
-  if (!Array.isArray(user.addresses)) {
-    user.addresses = [];
+  if (shouldBeDefault) {
+    await refreshDefaultAddress(user._id, null);
   }
 
-  if (addressPayload.isDefault || user.addresses.length === 0) {
-    refreshDefaultAddress(user, null);
-    addressPayload.isDefault = true;
-  }
+  await Address.create({
+    user: user._id,
+    ...addressPayload,
+    isDefault: shouldBeDefault,
+  });
 
-  user.addresses.push(addressPayload);
-  await user.save();
+  const updatedAddresses = await getUserAddresses(user);
 
   res.status(201).json({
     success: true,
-    data: sanitizeUser(user).addresses,
+    data: updatedAddresses.map(serializeAddress),
   });
 });
 
@@ -123,7 +119,7 @@ const updateAddress = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Address id is required");
   }
 
-  const address = user.addresses.id(addressId);
+  const address = await Address.findOne({ _id: addressId, user: user._id });
 
   if (!address) {
     throw new ApiError(404, "Address not found");
@@ -135,18 +131,24 @@ const updateAddress = asyncHandler(async (req, res) => {
   address.name = addressPayload.name;
   address.phone = addressPayload.phone;
   address.address = addressPayload.address;
+  address.apartment = addressPayload.apartment;
+  address.company = addressPayload.company;
   address.city = addressPayload.city;
+  address.state = addressPayload.state;
+  address.country = addressPayload.country;
   address.zip = addressPayload.zip;
 
   if (addressPayload.isDefault) {
-    refreshDefaultAddress(user, addressId);
+    await refreshDefaultAddress(user._id, addressId);
+    address.isDefault = true;
   }
 
-  await user.save();
+  await address.save();
+  const updatedAddresses = await getUserAddresses(user);
 
   res.status(200).json({
     success: true,
-    data: sanitizeUser(user).addresses,
+    data: updatedAddresses.map(serializeAddress),
   });
 });
 
@@ -158,23 +160,24 @@ const deleteAddress = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Address id is required");
   }
 
-  const address = user.addresses.id(addressId);
+  const address = await Address.findOne({ _id: addressId, user: user._id });
 
   if (!address) {
     throw new ApiError(404, "Address not found");
   }
 
-  address.remove();
+  await Address.deleteOne({ _id: addressId, user: user._id });
+  const remainingAddresses = await getUserAddresses(user);
 
-  if (user.addresses.length > 0 && !user.addresses.some((addr) => addr.isDefault)) {
-    user.addresses[0].isDefault = true;
+  if (remainingAddresses.length > 0 && !remainingAddresses.some((addr) => addr.isDefault)) {
+    await refreshDefaultAddress(user._id, remainingAddresses[0]._id);
   }
 
-  await user.save();
+  const updatedAddresses = await getUserAddresses(user);
 
   res.status(200).json({
     success: true,
-    data: sanitizeUser(user).addresses,
+    data: updatedAddresses.map(serializeAddress),
   });
 });
 

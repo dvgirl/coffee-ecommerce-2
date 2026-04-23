@@ -1,3 +1,5 @@
+import { adminFetch } from "@/lib/admin-api";
+
 export type AdminOrderItem = {
   productId: number;
   name: string;
@@ -37,9 +39,6 @@ export type AdminOrderRecord = {
   updatedAt: string;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
-
 const parseResponse = async <T>(response: Response): Promise<T> => {
   const payload = await response.json();
   if (!response.ok) {
@@ -49,7 +48,7 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
 };
 
 export async function getOrders(): Promise<AdminOrderRecord[]> {
-  const response = await fetch(`${API_BASE_URL}/orders`, {
+  const response = await adminFetch(`/admin/orders`, {
     cache: "no-store",
   });
   return parseResponse<AdminOrderRecord[]>(response);
@@ -61,7 +60,7 @@ export async function updateOrderStatus(
   payload?: { cancelReason?: string; refundReason?: string },
 ): Promise<AdminOrderRecord> {
   const body = { status, ...(payload || {}) };
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+  const response = await adminFetch(`/admin/orders/${orderId}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -70,7 +69,7 @@ export async function updateOrderStatus(
 }
 
 export async function getOrderById(orderId: number): Promise<AdminOrderRecord> {
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
+  const response = await adminFetch(`/admin/orders/${orderId}`, {
     cache: "no-store",
   });
   return parseResponse<AdminOrderRecord>(response);
@@ -79,7 +78,7 @@ export async function getOrderById(orderId: number): Promise<AdminOrderRecord> {
 export async function advanceOrderStatus(
   orderId: number,
 ): Promise<AdminOrderRecord> {
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/advance`, {
+  const response = await adminFetch(`/admin/orders/${orderId}/advance`, {
     method: "POST",
   });
   return parseResponse<AdminOrderRecord>(response);

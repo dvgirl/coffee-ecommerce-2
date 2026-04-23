@@ -54,6 +54,13 @@ export type ProductListResponse = {
   };
 };
 
+export type CategoryRecord = {
+  id: string;
+  name: string;
+  image?: string;
+  active: boolean;
+};
+
 type ProductQuery = {
   page?: number;
   limit?: number;
@@ -117,4 +124,18 @@ export async function getProductById(
   }
 
   return payload.data as ProductRecord;
+}
+
+export async function getCategories(): Promise<CategoryRecord[]> {
+  const response = await fetch(`${API_BASE_URL}/categories`, {
+    cache: "no-store",
+  });
+
+  const payload = await response.json();
+
+  if (!response.ok) {
+    throw new Error(payload.message || "Failed to fetch categories");
+  }
+
+  return payload.data as CategoryRecord[];
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Coffee, ShieldCheck, CreditCard, ChevronRight, CheckCircle2, ArrowLeft, Package, MapPin, Search } from "lucide-react";
 import { useAppContext } from "@/context/CartContext";
@@ -9,7 +9,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { createOrder } from "@/lib/order-api";
 import { getStoredSession } from "@/lib/auth";
-import { getUserAddresses, type AddressRecord } from "@/lib/user-api";
+import { addUserAddress, getUserAddresses, updateUserAddress, type AddressRecord } from "@/lib/user-api";
 import Confetti from "react-confetti";
 import useWindowSize from "react-use/lib/useWindowSize";
 
@@ -30,16 +30,16 @@ export default function CheckoutPage() {
   const { width, height } = useWindowSize();
 
   const [formData, setFormData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    address: "123 Coffee Bean Way",
-    apartment: "Suite 5B",
-    company: "Aura Roasters",
-    city: "Seattle",
-    state: "Washington",
-    country: "India",
-    zip: "98101",
-    cardName: "John Doe"
+    firstName: "",
+    lastName: "",
+    address: "",
+    apartment: "",
+    company: "",
+    city: "",
+    state: "",
+    country: "",
+    zip: "",
+    cardName: ""
   });
   const [couponCode, setCouponCode] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
@@ -48,32 +48,17 @@ export default function CheckoutPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [addresses, setAddresses] = useState<AddressRecord[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [addressLabel, setAddressLabel] = useState("Home");
+  const [saveAsDefault, setSaveAsDefault] = useState(true);
+  const [addressActionLoading, setAddressActionLoading] = useState(false);
+  const [addressMessage, setAddressMessage] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    const initialize = async () => {
-      await fetchAndSyncAuthentication();
-      if (!getStoredSession()?.token) {
-        router.replace(`/login?returnTo=${encodeURIComponent("/checkout")}`);
-      }
-    };
-
-    void initialize();
-
-    const onAuthChange = async () => {
-      await fetchAndSyncAuthentication();
-      if (!getStoredSession()?.token) {
-        router.replace(`/login?returnTo=${encodeURIComponent("/checkout")}`);
-      }
-    };
-
-    window.addEventListener("auth-changed", onAuthChange);
-    return () => window.removeEventListener("auth-changed", onAuthChange);
-  }, [router]);
 
   const validate = (field: string, value: string) => {
     switch (field) {
-      case 'zip': return /^\d{5}(-\d{4})?$/.test(value);
+      case 'zip': return /^[1-9]\d{5}$/.test(value.trim());
       case 'firstName':
       case 'lastName':
       case 'address':
@@ -97,9 +82,11 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [field]: value }));
     setTouched(prev => ({ ...prev, [field]: true }));
     setSelectedAddressId(null);
+    setEditingAddressId(null);
+    setAddressMessage("");
   };
 
-  const applyAddressToForm = (address: AddressRecord) => {
+  const applyAddressToForm = useCallback((address: AddressRecord) => {
     const [firstName, ...rest] = address.name.split(" ");
 
     setFormData((prev) => ({
@@ -114,7 +101,9 @@ export default function CheckoutPage() {
       country: address.country,
       zip: address.zip,
     }));
-  };
+    setAddressLabel(address.label || "Home");
+    setSaveAsDefault(Boolean(address.isDefault));
+  }, []);
 
   const getCouponDefinition = (code: string) => {
     return AVAILABLE_COUPONS[String(code || "").trim().toUpperCase()] || null;
@@ -155,37 +144,166 @@ export default function CheckoutPage() {
     setCouponMessage(`Coupon applied: ${coupon.label}`);
   };
 
-  const loadSavedAddresses = async () => {
+  const loadSavedAddresses = useCallback(async () => {
     try {
       const savedAddresses = await getUserAddresses();
       setAddresses(savedAddresses);
       if (savedAddresses.length > 0) {
         const defaultAddress = savedAddresses.find((entry) => entry.isDefault) || savedAddresses[0];
         setSelectedAddressId(defaultAddress.id);
+        setEditingAddressId(null);
+        setShowAddressForm(false);
         applyAddressToForm(defaultAddress);
+      } else {
+        setSelectedAddressId(null);
+        setEditingAddressId(null);
+        setShowAddressForm(false);
+        setAddressLabel("Home");
+        setSaveAsDefault(true);
       }
     } catch (error) {
       console.warn("Unable to load saved addresses", error);
     }
-  };
+  }, [applyAddressToForm]);
 
   const handleAddressSelect = (addressId: string) => {
     const selected = addresses.find((address) => address.id === addressId);
     if (!selected) return;
     setSelectedAddressId(addressId);
+    setEditingAddressId(null);
+    setShowAddressForm(false);
     applyAddressToForm(selected);
+    setAddressMessage("");
   };
 
-  const fetchAndSyncAuthentication = async () => {
+  const handleStartNewAddress = () => {
+    setSelectedAddressId(null);
+    setEditingAddressId(null);
+    setShowAddressForm(true);
+    setAddressLabel(addresses.length === 0 ? "Home" : "New Address");
+    setSaveAsDefault(addresses.length === 0);
+    setAddressMessage("");
+    setTouched({});
+    setFormData((prev) => ({
+      ...prev,
+      firstName: "",
+      lastName: "",
+      address: "",
+      apartment: "",
+      company: "",
+      city: "",
+      state: "",
+      country: "",
+      zip: "",
+    }));
+  };
+
+  const handleEditSavedAddress = (address: AddressRecord) => {
+    setSelectedAddressId(address.id);
+    setEditingAddressId(address.id);
+    setShowAddressForm(true);
+    applyAddressToForm(address);
+    setAddressMessage("");
+    setTouched({});
+  };
+
+  const validateShippingStep = () => {
+    const requiredFields = ["firstName", "lastName", "address", "city", "state", "country", "zip"] as const;
+    const nextTouched = requiredFields.reduce<Record<string, boolean>>((acc, field) => {
+      acc[field] = true;
+      return acc;
+    }, {});
+
+    setTouched((prev) => ({ ...prev, ...nextTouched }));
+    return requiredFields.every((field) => validate(field, formData[field]));
+  };
+
+  const handleSaveAddress = async () => {
+    if (!isAuthenticated) return;
+    if (!validateShippingStep()) {
+      setAddressMessage("Please fill all required delivery details before saving the address.");
+      return;
+    }
+
+    setAddressActionLoading(true);
+    setAddressMessage("");
+
+    const payload = {
+      label: addressLabel.trim() || "Address",
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
+      phone: getStoredSession()?.user?.phoneNumber || "",
+      address: formData.address.trim(),
+      apartment: formData.apartment.trim(),
+      company: formData.company.trim(),
+      city: formData.city.trim(),
+      state: formData.state.trim(),
+      country: formData.country.trim(),
+      zip: formData.zip.trim(),
+      isDefault: saveAsDefault,
+    };
+
+    try {
+      if (editingAddressId) {
+        const updated = await updateUserAddress(editingAddressId, payload);
+        setAddressMessage("Address updated successfully.");
+        setSelectedAddressId(updated.id);
+      } else {
+        const created = await addUserAddress(payload);
+        setAddressMessage("Address saved successfully.");
+        setSelectedAddressId(created.id);
+      }
+
+      setEditingAddressId(null);
+      setShowAddressForm(false);
+      await loadSavedAddresses();
+    } catch (error) {
+      console.warn("Unable to save address", error);
+      setAddressMessage("Unable to save address right now. Please try again.");
+    } finally {
+      setAddressActionLoading(false);
+    }
+  };
+
+  const fetchAndSyncAuthentication = useCallback(async () => {
     const session = getStoredSession();
     const authenticated = Boolean(session?.token);
     setIsAuthenticated(authenticated);
     if (authenticated) {
       await loadSavedAddresses();
+    } else {
+      setAddresses([]);
+      setSelectedAddressId(null);
+      setEditingAddressId(null);
+      setShowAddressForm(true);
     }
-  };
+  }, [loadSavedAddresses]);
+
+  useEffect(() => {
+    const initialize = async () => {
+      await fetchAndSyncAuthentication();
+      if (!getStoredSession()?.token) {
+        router.replace(`/login?returnTo=${encodeURIComponent("/checkout")}`);
+      }
+    };
+
+    void initialize();
+
+    const onAuthChange = async () => {
+      await fetchAndSyncAuthentication();
+      if (!getStoredSession()?.token) {
+        router.replace(`/login?returnTo=${encodeURIComponent("/checkout")}`);
+      }
+    };
+
+    window.addEventListener("auth-changed", onAuthChange);
+    return () => window.removeEventListener("auth-changed", onAuthChange);
+  }, [fetchAndSyncAuthentication, router]);
 
   const handleNext = () => {
+    if (currentStep === 0 && !validateShippingStep()) {
+      return;
+    }
+
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
@@ -247,7 +365,7 @@ export default function CheckoutPage() {
 
   if (!isCartReady && !isSuccess) {
     return (
-      <div className="pt-40 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center">
+      <div className="pt-28 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center">
         <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-8" />
         <h2 className="text-3xl font-serif font-bold mb-4 text-foreground">Loading checkout</h2>
         <p className="text-muted max-w-md">Waiting for your saved cart items before checkout.</p>
@@ -257,10 +375,10 @@ export default function CheckoutPage() {
 
   if (cart.length === 0 && !isSuccess) {
     return (
-      <div className="pt-40 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center">
+      <div className="pt-28 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center">
         <Package className="w-20 h-20 text-primary mb-8 animate-bounce opacity-40" />
         <h2 className="text-3xl font-serif font-bold mb-4 text-foreground">Your Basket is Light</h2>
-        <p className="text-muted mb-10 text-lg max-w-md">You haven't added any artisan roasts to your cart yet. Let's find something perfect for you.</p>
+        <p className="text-muted mb-10 text-lg max-w-md">You haven&apos;t added any artisan roasts to your cart yet. Let&apos;s find something perfect for you.</p>
         <Link href="/shop" className="bg-primary text-white px-10 py-4 rounded-2xl font-bold hover:bg-foreground transition-all shadow-[0_20px_40px_rgba(198,156,109,0.2)]">
           Explore Our Collection
         </Link>
@@ -270,7 +388,7 @@ export default function CheckoutPage() {
 
   if (isSuccess) {
     return (
-      <div className="pt-32 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center relative">
+      <div className="pt-24 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center relative">
         {isSuccess && <Confetti width={width} height={height} recycle={false} numberOfPieces={500} colors={['#C69C6D', '#2A1C16', '#F5EBE1']} />}
         
         <motion.div 
@@ -325,7 +443,7 @@ export default function CheckoutPage() {
   const finalTotal = Math.max(0, orderTotalBeforeDiscount - couponDiscount);
 
   return (
-    <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen">
+    <div className="pt-24 pb-24 px-6 md:px-12 container mx-auto min-h-screen">
       <div className="flex flex-col lg:flex-row gap-16 max-w-7xl mx-auto">
         
         {/* Left Side - Checkout Flow */}
@@ -385,38 +503,112 @@ export default function CheckoutPage() {
                       <h2 className="text-2xl font-serif font-bold text-foreground">Delivery Details</h2>
                    </div>
 
-                   {isAuthenticated && addresses.length > 0 && (
-                     <div className="space-y-3 mb-6 rounded-[2rem] border border-black/5 bg-white/80 p-6 shadow-sm">
-                       <p className="text-sm font-semibold text-foreground">Saved Addresses</p>
-                       <div className="grid gap-4 sm:grid-cols-2">
-                         {addresses.map((address) => (
+                   {isAuthenticated && (
+                     <div className="space-y-4 mb-6 rounded-[2rem] border border-black/5 bg-white/80 p-6 shadow-sm">
+                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                         <div>
+                           <p className="text-sm font-semibold text-foreground">Saved Addresses</p>
+                           <p className="mt-1 text-sm text-muted">Select one, edit an existing address, or add a new one for this order.</p>
+                         </div>
+                         <div className="flex flex-wrap gap-3">
                            <button
-                             key={address.id}
                              type="button"
-                             onClick={() => handleAddressSelect(address.id)}
-                             className={`group rounded-[1.75rem] border p-5 text-left transition-all shadow-sm ${selectedAddressId === address.id ? "border-primary bg-primary/10 shadow-primary/10" : "border-black/10 bg-slate-50 hover:border-primary/40 hover:bg-white"}`}
+                             onClick={handleStartNewAddress}
+                             className="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-foreground transition-colors hover:border-primary hover:text-primary"
                            >
-                             <div className="flex items-start justify-between gap-3">
-                               <div>
-                                 <p className="text-sm font-semibold text-foreground">{address.label}</p>
-                                 {address.isDefault && <p className="mt-1 text-[11px] uppercase tracking-[0.24em] text-primary">Primary address</p>}
-                               </div>
-                               <span className="inline-flex items-center rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
-                                 {selectedAddressId === address.id ? "Selected" : "Select"}
-                               </span>
-                             </div>
-                             <div className="mt-4 space-y-2 text-sm text-muted">
-                               <p>{address.name}{address.phone ? ` · ${address.phone}` : ""}</p>
-                               {address.company && <p>{address.company}</p>}
-                               <p>{address.address}{address.apartment ? `, ${address.apartment}` : ""}</p>
-                               <p>{address.city}, {address.state}, {address.country} {address.zip}</p>
-                             </div>
+                             Add New
                            </button>
-                         ))}
+                           {selectedAddressId && (
+                             <button
+                               type="button"
+                               onClick={() => {
+                                 const selected = addresses.find((entry) => entry.id === selectedAddressId);
+                                 if (selected) {
+                                   handleEditSavedAddress(selected);
+                                 }
+                               }}
+                               className="rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-primary transition-colors hover:bg-primary/15"
+                             >
+                               Edit Selected
+                             </button>
+                           )}
+                         </div>
                        </div>
+
+                       {addresses.length > 0 ? (
+                         <div className="space-y-4">
+                           {addresses.map((address) => (
+                             <div
+                               key={address.id}
+                               className={`rounded-[1.75rem] border p-5 text-left transition-all shadow-sm ${selectedAddressId === address.id ? "border-primary bg-primary/10 shadow-primary/10" : "border-black/10 bg-slate-50 hover:border-primary/40 hover:bg-white"}`}
+                             >
+                               <div className="flex items-start justify-between gap-3">
+                                 <div>
+                                   <p className="text-sm font-semibold text-foreground">{address.label}</p>
+                                   {address.isDefault && <p className="mt-1 text-[11px] uppercase tracking-[0.24em] text-primary">Primary address</p>}
+                                 </div>
+                                 <span className="inline-flex items-center rounded-full bg-black/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-muted">
+                                   {selectedAddressId === address.id ? "Selected" : "Saved"}
+                                 </span>
+                               </div>
+                               <div className="mt-4 space-y-2 text-sm text-muted">
+                                 <p>{address.name}{address.phone ? ` · ${address.phone}` : ""}</p>
+                                 {address.company && <p>{address.company}</p>}
+                                 <p>{address.address}{address.apartment ? `, ${address.apartment}` : ""}</p>
+                                 <p>{address.city}, {address.state}, {address.country} {address.zip}</p>
+                               </div>
+                               <div className="mt-5 flex flex-wrap gap-3">
+                                 <button
+                                   type="button"
+                                   onClick={() => handleAddressSelect(address.id)}
+                                   className="rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white transition-colors hover:bg-foreground"
+                                 >
+                                   Use This
+                                 </button>
+                                 <button
+                                   type="button"
+                                   onClick={() => handleEditSavedAddress(address)}
+                                   className="rounded-full border border-black/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-foreground transition-colors hover:border-primary hover:text-primary"
+                                 >
+                                   Edit
+                                 </button>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       ) : (
+                         <div className="rounded-[1.75rem] border border-dashed border-black/10 bg-slate-50 px-5 py-6 text-sm text-muted">
+                           No saved addresses yet. Fill the form below and save it for faster checkout next time.
+                         </div>
+                       )}
                      </div>
                    )}
 
+                   {isAuthenticated && showAddressForm && (
+                     <div className="grid grid-cols-1 gap-6 rounded-[2rem] border border-black/5 bg-slate-50/80 p-5 md:grid-cols-[1.1fr_auto] md:items-end">
+                       <div className="space-y-2.5">
+                         <label className="text-xs font-bold text-muted uppercase tracking-widest ml-1">Address Label</label>
+                         <input
+                           type="text"
+                           className="w-full border border-black/10 rounded-2xl px-5 py-4 focus:outline-none transition-all duration-300 font-medium bg-white/80"
+                           value={addressLabel}
+                           onChange={(e) => setAddressLabel(e.target.value)}
+                           placeholder="Home, Work, Office"
+                         />
+                       </div>
+                       <label className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white/80 px-5 py-4 text-sm font-medium text-foreground">
+                         <input
+                           type="checkbox"
+                           checked={saveAsDefault}
+                           onChange={(e) => setSaveAsDefault(e.target.checked)}
+                           className="h-4 w-4 accent-primary"
+                         />
+                         Save as default address
+                       </label>
+                     </div>
+                   )}
+
+                   {(!isAuthenticated || showAddressForm) && (
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-2.5 relative">
                        <label className="text-xs font-bold text-muted uppercase tracking-widest ml-1">First Name</label>
@@ -492,15 +684,47 @@ export default function CheckoutPage() {
                        />
                      </div>
                      <div className="space-y-2.5 relative">
-                       <label className="text-xs font-bold text-muted uppercase tracking-widest ml-1">Zip Code</label>
+                       <label className="text-xs font-bold text-muted uppercase tracking-widest ml-1">Postcode</label>
                        <input type="text" 
                          className={`w-full border rounded-2xl px-5 py-4 focus:outline-none transition-all duration-300 font-medium ${getValidationClass('zip')}`} 
                          value={formData.zip}
-                         onChange={(e) => handleInputChange('zip', e.target.value)}
-                         onBlur={() => setTouched(prev => ({ ...prev, zip: true }))}
-                       />
+                          onChange={(e) => handleInputChange('zip', e.target.value)}
+                          onBlur={() => setTouched(prev => ({ ...prev, zip: true }))}
+                          inputMode="numeric"
+                          maxLength={6}
+                          placeholder="6-digit PIN code"
+                        />
+                      </div>
+                    </div>
+                   )}
+
+                   {isAuthenticated && showAddressForm && (
+                     <div className="rounded-[2rem] border border-black/5 bg-white/80 p-5 shadow-sm">
+                       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                         <div>
+                           <p className="text-sm font-semibold text-foreground">
+                             {editingAddressId ? "Update this saved address" : "Save these delivery details"}
+                           </p>
+                           <p className="mt-1 text-sm text-muted">
+                             {editingAddressId ? "Your changes will update the selected address for future orders too." : "Save this address to reuse it quickly on your next checkout."}
+                           </p>
+                         </div>
+                         <button
+                           type="button"
+                           onClick={() => void handleSaveAddress()}
+                           disabled={addressActionLoading}
+                           className="rounded-full bg-primary px-6 py-3 text-xs font-semibold uppercase tracking-[0.24em] text-white transition-colors hover:bg-foreground disabled:cursor-not-allowed disabled:opacity-70"
+                         >
+                           {addressActionLoading ? "Saving..." : editingAddressId ? "Update Address" : "Save Address"}
+                         </button>
+                       </div>
+                       {addressMessage && (
+                         <p className={`mt-4 text-sm ${addressMessage.toLowerCase().includes("unable") || addressMessage.toLowerCase().includes("please fill") ? "text-red-600" : "text-green-600"}`}>
+                           {addressMessage}
+                         </p>
+                       )}
                      </div>
-                   </div>
+                   )}
                  </motion.div>
                )}
 
@@ -726,4 +950,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-

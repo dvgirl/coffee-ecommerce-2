@@ -1,3 +1,5 @@
+import { adminFetch } from "@/lib/admin-api";
+
 export type AdminProductListItem = {
   id: number;
   name: string;
@@ -59,9 +61,6 @@ type ProductQuery = {
   maxPrice?: number;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api";
-
 const buildQueryString = (query: ProductQuery) => {
   const params = new URLSearchParams();
 
@@ -85,8 +84,8 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
 export async function getProducts(
   query: ProductQuery = {},
 ): Promise<ProductListResponse> {
-  const response = await fetch(
-    `${API_BASE_URL}/products${buildQueryString(query)}`,
+  const response = await adminFetch(
+    `/admin/products${buildQueryString(query)}`,
     {
       cache: "no-store",
     },
@@ -98,6 +97,7 @@ export async function getProducts(
 export type AdminCategoryRecord = {
   id: string;
   name: string;
+  image?: string;
   active: boolean;
 };
 
@@ -145,7 +145,7 @@ export type AdminProductRecord = {
 };
 
 export async function getCategories(): Promise<AdminCategoryRecord[]> {
-  const response = await fetch(`${API_BASE_URL}/categories`, {
+  const response = await adminFetch(`/admin/categories`, {
     cache: "no-store",
   });
 
@@ -153,9 +153,9 @@ export async function getCategories(): Promise<AdminCategoryRecord[]> {
 }
 
 export async function createCategory(
-  category: Pick<AdminCategoryRecord, "name">,
+  category: Pick<AdminCategoryRecord, "name" | "image">,
 ): Promise<AdminCategoryRecord> {
-  const response = await fetch(`${API_BASE_URL}/categories`, {
+  const response = await adminFetch(`/admin/categories`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -166,11 +166,28 @@ export async function createCategory(
   return parseResponse<AdminCategoryRecord>(response);
 }
 
+export async function uploadCategoryImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await adminFetch(`/admin/categories/upload-image`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.message || "Failed to upload category image");
+  }
+
+  return payload.data.url as string;
+}
+
 export async function updateCategory(
   categoryId: string,
-  category: Partial<Pick<AdminCategoryRecord, "name" | "active">>,
+  category: Partial<Pick<AdminCategoryRecord, "name" | "image" | "active">>,
 ): Promise<AdminCategoryRecord> {
-  const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
+  const response = await adminFetch(`/admin/categories/${categoryId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -182,7 +199,7 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/categories/${categoryId}`, {
+  const response = await adminFetch(`/admin/categories/${categoryId}`, {
     method: "DELETE",
   });
 
@@ -192,7 +209,7 @@ export async function deleteCategory(categoryId: string): Promise<void> {
 export async function getProductById(
   productId: number,
 ): Promise<AdminProductRecord | null> {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+  const response = await adminFetch(`/admin/products/${productId}`, {
     cache: "no-store",
   });
 
@@ -207,7 +224,7 @@ export async function uploadProductImages(files: File[]): Promise<string[]> {
   const formData = new FormData();
   files.forEach((file) => formData.append("images", file));
 
-  const response = await fetch(`${API_BASE_URL}/products/upload-image`, {
+  const response = await adminFetch(`/admin/products/upload-image`, {
     method: "POST",
     body: formData,
   });
@@ -223,7 +240,7 @@ export async function uploadProductImages(files: File[]): Promise<string[]> {
 export async function createProduct(
   product: Partial<AdminProductRecord> & { id?: number },
 ): Promise<AdminProductRecord> {
-  const response = await fetch(`${API_BASE_URL}/products`, {
+  const response = await adminFetch(`/admin/products`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -238,7 +255,7 @@ export async function updateProduct(
   productId: number,
   product: Partial<AdminProductRecord>,
 ): Promise<AdminProductRecord> {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+  const response = await adminFetch(`/admin/products/${productId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -250,7 +267,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(productId: number): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+  const response = await adminFetch(`/admin/products/${productId}`, {
     method: "DELETE",
   });
 

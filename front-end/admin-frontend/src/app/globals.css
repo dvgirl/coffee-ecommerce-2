@@ -13,6 +13,8 @@
 :root {
   --background: #fcfaf7;
   --foreground: #2a1c16;
+  --font-inter: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-outfit: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
 }
 
 * {

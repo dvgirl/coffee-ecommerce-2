@@ -1,8 +1,9 @@
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const User = require("../models/User");
+const Address = require("../models/Address");
 
-const sanitizeUser = (user) => ({
+const sanitizeUser = (user, addressesCount = 0) => ({
   id: user._id,
   name: user.name,
   phoneNumber: user.phoneNumber,
@@ -10,7 +11,7 @@ const sanitizeUser = (user) => ({
   lastLoginAt: user.lastLoginAt,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
-  addressesCount: user.addresses ? user.addresses.length : 0,
+  addressesCount,
 });
 
 const getAllUsers = asyncHandler(async (req, res) => {
@@ -26,11 +27,17 @@ const getAllUsers = asyncHandler(async (req, res) => {
     .lean();
 
   const total = await User.countDocuments();
+  const addressCounts = await Address.aggregate([
+    { $group: { _id: "$user", count: { $sum: 1 } } },
+  ]);
+  const addressCountMap = new Map(
+    addressCounts.map((entry) => [String(entry._id), entry.count]),
+  );
 
   res.status(200).json({
     success: true,
     data: {
-      items: users.map(sanitizeUser),
+      items: users.map((user) => sanitizeUser(user, addressCountMap.get(String(user._id)) || 0)),
       pagination: {
         page,
         limit,
@@ -51,9 +58,11 @@ const getUserById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
+  const addressesCount = await Address.countDocuments({ user: user._id });
+
   res.status(200).json({
     success: true,
-    data: sanitizeUser(user),
+    data: sanitizeUser(user, addressesCount),
   });
 });
 
@@ -75,9 +84,11 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new ApiError(404, "User not found");
   }
 
+  const addressesCount = await Address.countDocuments({ user: user._id });
+
   res.status(200).json({
     success: true,
-    data: sanitizeUser(user),
+    data: sanitizeUser(user, addressesCount),
   });
 });
 
