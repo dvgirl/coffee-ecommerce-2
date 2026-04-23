@@ -244,13 +244,36 @@ export default function CheckoutPage() {
 
     try {
       if (editingAddressId) {
-        const updated = await updateUserAddress(editingAddressId, payload);
+        const updatedAddresses = await updateUserAddress(editingAddressId, payload);
+        setAddresses(updatedAddresses);
         setAddressMessage("Address updated successfully.");
-        setSelectedAddressId(updated.id);
+        const selectedAddress =
+          updatedAddresses.find((address) => address.id === editingAddressId) ||
+          updatedAddresses.find((address) => address.isDefault) ||
+          updatedAddresses[0];
+
+        if (selectedAddress) {
+          setSelectedAddressId(selectedAddress.id);
+          applyAddressToForm(selectedAddress);
+        }
       } else {
-        const created = await addUserAddress(payload);
+        const updatedAddresses = await addUserAddress(payload);
+        setAddresses(updatedAddresses);
         setAddressMessage("Address saved successfully.");
-        setSelectedAddressId(created.id);
+        const selectedAddress =
+          updatedAddresses.find(
+            (address) =>
+              address.name === payload.name &&
+              address.address === payload.address &&
+              address.zip === payload.zip,
+          ) ||
+          updatedAddresses.find((address) => address.isDefault) ||
+          updatedAddresses[updatedAddresses.length - 1];
+
+        if (selectedAddress) {
+          setSelectedAddressId(selectedAddress.id);
+          applyAddressToForm(selectedAddress);
+        }
       }
 
       setEditingAddressId(null);
