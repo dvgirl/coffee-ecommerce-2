@@ -66,10 +66,14 @@ export async function verifyAdminOtp(
   }>(response);
 
   // If token is returned in response body (fallback for cross-origin cookie issues),
-  // store it in localStorage as backup
+  // store it in localStorage as backup AND set a cookie for server-side access
   if (payload.token) {
     try {
       localStorage.setItem("admin_token", payload.token);
+
+      // Also set a cookie so the server-side proxy can read it
+      // This cookie is accessible to the server for authentication checks
+      document.cookie = `admin_token=${payload.token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
     } catch {
       // localStorage might be unavailable (private browsing, etc.)
     }
