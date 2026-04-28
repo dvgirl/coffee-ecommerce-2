@@ -43,6 +43,7 @@ export default function LoginPage() {
       await verifyAdminOtp(phoneNumber, otp);
       router.replace("/");
       router.refresh();
+      window.location.assign("/");
     } catch (verifyError) {
       setError(verifyError instanceof Error ? verifyError.message : "Unable to verify admin OTP");
     } finally {

@@ -39,13 +39,23 @@ const sanitizeAdminUser = (user) => ({
   isAdmin: isAdminPhoneNumber(user.phoneNumber),
 });
 
-const getAdminCookieOptions = () => ({
-  httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
-  path: "/",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-});
+const getAdminCookieOptions = () => {
+  const isProduction = process.env.NODE_ENV === "production";
+  const sameSite = process.env.ADMIN_COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+  const cookieOptions = {
+    httpOnly: true,
+    sameSite,
+    secure: isProduction || sameSite === "none",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
+
+  if (process.env.ADMIN_COOKIE_DOMAIN) {
+    cookieOptions.domain = process.env.ADMIN_COOKIE_DOMAIN;
+  }
+
+  return cookieOptions;
+};
 
 const requestOtp = asyncHandler(async (req, res) => {
   const { trimmedName, normalizedPhone } = validateNameAndPhone(
