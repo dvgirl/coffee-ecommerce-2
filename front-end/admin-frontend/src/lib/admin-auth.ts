@@ -54,8 +54,29 @@ export async function verifyAdminOtp(phoneNumber: string, otp: string): Promise<
     }),
   });
 
-  const payload = await parseResponse<{ user: AdminSessionUser }>(response);
+  const payload = await parseResponse<{ user: AdminSessionUser; token?: string }>(response);
+  
+  // If token is returned in response body (fallback for cross-origin cookie issues),
+  // store it in localStorage as backup
+  if (payload.token) {
+    try {
+      localStorage.setItem("admin_token", payload.token);
+    } catch {
+      // localStorage might be unavailable (private browsing, etc.)
+    }
+  }
+  
   return payload.user;
+}
+
+// Helper function to get stored admin token
+export function getStoredAdminToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem("admin_token");
+  } catch {
+    return null;
+  }
 }
 
 export async function logoutAdmin(): Promise<void> {
@@ -65,6 +86,13 @@ export async function logoutAdmin(): Promise<void> {
   });
 
   await parseResponse(response);
+  
+  // Clear localStorage token as well
+  try {
+    localStorage.removeItem("admin_token");
+  } catch {
+    // Ignore errors
+  }
 }
 
 export async function getCurrentAdmin(): Promise<AdminSessionUser> {

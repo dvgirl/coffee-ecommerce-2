@@ -3,8 +3,14 @@ const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const { generateOtp, getOtpExpiryDate } = require("../services/otpService");
 const { generateToken } = require("../services/tokenService");
-const { normalizePhoneNumber, isAdminPhoneNumber } = require("../utils/adminAuth");
-const { getUserAddresses, serializeAddress } = require("../services/addressService");
+const {
+  normalizePhoneNumber,
+  isAdminPhoneNumber,
+} = require("../utils/adminAuth");
+const {
+  getUserAddresses,
+  serializeAddress,
+} = require("../services/addressService");
 
 const sanitizeUser = (user, addresses = []) => ({
   id: user._id,
@@ -41,7 +47,8 @@ const sanitizeAdminUser = (user) => ({
 
 const getAdminCookieOptions = () => {
   const isProduction = process.env.NODE_ENV === "production";
-  const sameSite = process.env.ADMIN_COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
+  const sameSite =
+    process.env.ADMIN_COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
   const cookieOptions = {
     httpOnly: true,
     sameSite,
@@ -50,9 +57,9 @@ const getAdminCookieOptions = () => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 
-  if (process.env.ADMIN_COOKIE_DOMAIN) {
-    cookieOptions.domain = process.env.ADMIN_COOKIE_DOMAIN;
-  }
+  // if (process.env.ADMIN_COOKIE_DOMAIN) {
+  //   cookieOptions.domain = process.env.ADMIN_COOKIE_DOMAIN;
+  // }
 
   return cookieOptions;
 };
@@ -60,7 +67,7 @@ const getAdminCookieOptions = () => {
 const requestOtp = asyncHandler(async (req, res) => {
   const { trimmedName, normalizedPhone } = validateNameAndPhone(
     req.body.name,
-    req.body.phoneNumber
+    req.body.phoneNumber,
   );
 
   const otpCode = generateOtp();
@@ -247,6 +254,7 @@ const verifyAdminOtp = asyncHandler(async (req, res) => {
     success: true,
     message: "Admin OTP verified successfully",
     data: {
+      token, // Return token in response body as fallback for cross-origin cookie issues
       user: sanitizeAdminUser(user),
     },
   });

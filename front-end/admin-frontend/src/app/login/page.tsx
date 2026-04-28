@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { ShieldCheck, Smartphone } from "lucide-react";
 import { requestAdminOtp, verifyAdminOtp } from "@/lib/admin-auth";
 
-const normalizePhoneInput = (value: string) => value.replace(/\D/g, "").slice(0, 10);
-const normalizeOtpInput = (value: string) => value.replace(/\D/g, "").slice(0, 6);
+const normalizePhoneInput = (value: string) =>
+  value.replace(/\D/g, "").slice(0, 10);
+const normalizeOtpInput = (value: string) =>
+  value.replace(/\D/g, "").slice(0, 6);
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,11 +26,18 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await requestAdminOtp(phoneNumber, name.trim() || undefined);
+      const response = await requestAdminOtp(
+        phoneNumber,
+        name.trim() || undefined,
+      );
       setGeneratedOtp(response.otp || "");
       setOtpRequested(true);
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to request admin OTP");
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to request admin OTP",
+      );
     } finally {
       setLoading(false);
     }
@@ -41,11 +50,15 @@ export default function LoginPage() {
 
     try {
       await verifyAdminOtp(phoneNumber, otp);
-      router.push("/products");
+      router.push("/");
       // router.refresh();
       // window.location.assign("/");
     } catch (verifyError) {
-      setError(verifyError instanceof Error ? verifyError.message : "Unable to verify admin OTP");
+      setError(
+        verifyError instanceof Error
+          ? verifyError.message
+          : "Unable to verify admin OTP",
+      );
     } finally {
       setLoading(false);
     }
@@ -62,16 +75,24 @@ export default function LoginPage() {
           Secure the control room before anything else.
         </h1>
         <p className="mt-5 max-w-xl text-sm leading-7 text-white/72 sm:text-base">
-          Every admin page now requires verified sign-in. The token is stored in an HTTP-only server cookie so it stays out of browser storage and is sent securely with admin requests.
+          Every admin page now requires verified sign-in. The token is stored in
+          an HTTP-only server cookie so it stays out of browser storage and is
+          sent securely with admin requests.
         </p>
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           <div className="rounded-[1.8rem] border border-white/10 bg-white/8 p-5">
             <p className="text-sm font-semibold text-white">Protected routes</p>
-            <p className="mt-2 text-sm leading-6 text-white/68">Dashboard, products, categories, orders, customers, and settings all redirect here until login succeeds.</p>
+            <p className="mt-2 text-sm leading-6 text-white/68">
+              Dashboard, products, categories, orders, customers, and settings
+              all redirect here until login succeeds.
+            </p>
           </div>
           <div className="rounded-[1.8rem] border border-white/10 bg-white/8 p-5">
             <p className="text-sm font-semibold text-white">Server cookie</p>
-            <p className="mt-2 text-sm leading-6 text-white/68">Admin auth is now carried in a secure HTTP-only cookie instead of exposing the token to client-side storage.</p>
+            <p className="mt-2 text-sm leading-6 text-white/68">
+              Admin auth is now carried in a secure HTTP-only cookie instead of
+              exposing the token to client-side storage.
+            </p>
           </div>
         </div>
       </section>
@@ -82,8 +103,12 @@ export default function LoginPage() {
             <Smartphone className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">OTP login</p>
-            <p className="text-sm text-slate-500">Use an admin-approved phone number</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-primary">
+              OTP login
+            </p>
+            <p className="text-sm text-slate-500">
+              Use an admin-approved phone number
+            </p>
           </div>
         </div>
 
@@ -102,7 +127,9 @@ export default function LoginPage() {
               <span className="font-medium text-slate-800">Phone number</span>
               <input
                 value={phoneNumber}
-                onChange={(event) => setPhoneNumber(normalizePhoneInput(event.target.value))}
+                onChange={(event) =>
+                  setPhoneNumber(normalizePhoneInput(event.target.value))
+                }
                 inputMode="numeric"
                 placeholder="10-digit admin phone"
                 className="w-full rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
@@ -128,7 +155,9 @@ export default function LoginPage() {
               <span className="font-medium text-slate-800">Enter OTP</span>
               <input
                 value={otp}
-                onChange={(event) => setOtp(normalizeOtpInput(event.target.value))}
+                onChange={(event) =>
+                  setOtp(normalizeOtpInput(event.target.value))
+                }
                 inputMode="numeric"
                 placeholder="6-digit OTP"
                 className="w-full rounded-[1.4rem] border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/10"
