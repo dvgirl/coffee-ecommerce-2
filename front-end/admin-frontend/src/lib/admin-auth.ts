@@ -25,7 +25,10 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
   return payload.data as T;
 };
 
-export async function requestAdminOtp(phoneNumber: string, name?: string): Promise<RequestOtpResponse> {
+export async function requestAdminOtp(
+  phoneNumber: string,
+  name?: string,
+): Promise<RequestOtpResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/admin/request-otp`, {
     method: "POST",
     headers: {
@@ -41,7 +44,10 @@ export async function requestAdminOtp(phoneNumber: string, name?: string): Promi
   return parseResponse<RequestOtpResponse>(response);
 }
 
-export async function verifyAdminOtp(phoneNumber: string, otp: string): Promise<AdminSessionUser> {
+export async function verifyAdminOtp(
+  phoneNumber: string,
+  otp: string,
+): Promise<AdminSessionUser> {
   const response = await fetch(`${API_BASE_URL}/auth/admin/verify-otp`, {
     method: "POST",
     headers: {
@@ -54,8 +60,11 @@ export async function verifyAdminOtp(phoneNumber: string, otp: string): Promise<
     }),
   });
 
-  const payload = await parseResponse<{ user: AdminSessionUser; token?: string }>(response);
-  
+  const payload = await parseResponse<{
+    user: AdminSessionUser;
+    token?: string;
+  }>(response);
+
   // If token is returned in response body (fallback for cross-origin cookie issues),
   // store it in localStorage as backup
   if (payload.token) {
@@ -65,7 +74,7 @@ export async function verifyAdminOtp(phoneNumber: string, otp: string): Promise<
       // localStorage might be unavailable (private browsing, etc.)
     }
   }
-  
+
   return payload.user;
 }
 
@@ -86,7 +95,7 @@ export async function logoutAdmin(): Promise<void> {
   });
 
   await parseResponse(response);
-  
+
   // Clear localStorage token as well
   try {
     localStorage.removeItem("admin_token");
