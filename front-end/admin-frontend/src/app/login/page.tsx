@@ -50,7 +50,11 @@ export default function LoginPage() {
 
     try {
       await verifyAdminOtp(phoneNumber, otp);
-      router.push("/");
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get("next") || "/";
+
+      router.replace(next);
+      router.refresh();
       // router.refresh();
       // window.location.assign("/");
     } catch (verifyError) {
