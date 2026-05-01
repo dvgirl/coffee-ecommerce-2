@@ -22,7 +22,7 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
       </div>
 
       <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-4">
             <div>
               <p className="text-sm font-semibold text-slate-900">Shipping information</p>
@@ -97,8 +97,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
           <p className="text-sm font-semibold text-slate-900">Order summary</p>
           <p className="text-sm text-slate-500">{order.items.length} line items</p>
         </div>
-        <div className="mt-4 overflow-x-auto">
-          <table className="min-w-full text-sm text-left">
+        <div className="admin-table-wrap mt-4">
+          <table className="admin-table min-w-full text-sm text-left">
             <thead>
               <tr className="bg-slate-100 text-slate-600">
                 <th className="border border-slate-200 px-3 py-2">Item</th>

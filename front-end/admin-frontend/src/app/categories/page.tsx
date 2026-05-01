@@ -151,13 +151,37 @@ export default function CategoriesPage() {
         badge="Catalog"
       />
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_0.85fr]">
+      <div className="grid gap-4 2xl:grid-cols-[minmax(0,1fr)_24rem]">
         <AdminCard>
           <p className="text-sm text-muted">Total categories</p>
           <p className="mt-3 text-3xl font-bold tracking-[-0.03em] text-foreground">{categories.length}</p>
           <p className="mt-4 text-sm leading-6 text-muted">
             Categories created here are available in the admin product form and in the storefront category filters.
           </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {categories.slice(0, 3).map((category) => (
+              <div
+                key={`summary-${category.id}`}
+                className="rounded-[1.4rem] border border-black/6 bg-white/80 p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-black/8 bg-background">
+                    {category.image ? (
+                      <img src={category.image} alt={category.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">No image</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-foreground">{category.name}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-muted">
+                      {category.active ? "Active" : "Inactive"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </AdminCard>
 
         <AdminCard title="New category" eyebrow="Add category">
@@ -190,7 +214,7 @@ export default function CategoriesPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-950 px-6 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-emerald-950 px-6 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
             >
               {submitting ? "Saving…" : "Create category"}
             </button>
@@ -200,8 +224,8 @@ export default function CategoriesPage() {
 
       <AdminCard title="Categories" eyebrow="Category list">
         <div className="overflow-hidden rounded-[1.5rem] border border-black/6">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-black/6 text-left">
+          <div className="admin-table-wrap">
+            <table className="admin-table min-w-full divide-y divide-black/6 text-left">
               <thead className="bg-background">
                 <tr className="text-xs uppercase tracking-[0.16em] text-muted">
                   <th className="px-4 py-3 font-bold">Name</th>
@@ -218,7 +242,7 @@ export default function CategoriesPage() {
 
                   return (
                     <tr key={category.id}>
-                      <td className="px-4 py-4 text-sm text-foreground">
+                      <td className="px-4 py-4 align-top text-sm text-foreground">
                         {isEditing ? (
                           <div className="space-y-3">
                             <input
@@ -226,40 +250,67 @@ export default function CategoriesPage() {
                               onChange={(event) => setDraftCategoryName(event.target.value)}
                               className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
                             />
-                            <input
-                              type="file"
-                              accept="image/png,image/jpeg,image/webp"
-                              onChange={(event) => {
-                                const file = event.target.files?.[0] || null;
-                                setDraftCategoryImageFile(file);
-                              }}
-                              className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
-                            />
-                            {draftCategoryImageFile ? (
-                              <p className="text-xs text-muted">Selected: {draftCategoryImageFile.name}</p>
-                            ) : draftCategoryImage ? (
-                              <p className="text-xs text-muted">Current image kept unless you upload a new one.</p>
-                            ) : null}
                           </div>
                         ) : (
-                          category.name
-                        )}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-muted">
-                        {category.image ? (
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={category.image}
-                              alt={category.name}
-                              className="h-12 w-12 rounded-2xl border border-black/10 object-cover"
-                            />
-                            <span className="max-w-[220px] truncate">{category.image}</span>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-foreground">{category.name}</p>
+                            <p className="break-all text-xs text-muted">{category.id}</p>
                           </div>
-                        ) : (
-                          "No image"
                         )}
                       </td>
-                      <td className="px-4 py-4 text-sm text-muted">{category.id}</td>
+                      <td className="px-4 py-4 align-top text-sm text-muted">
+                        <div className="flex min-w-[190px] items-start gap-3">
+                          <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border border-black/10 bg-background">
+                            {category.image ? (
+                              <img
+                                src={category.image}
+                                alt={category.name}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span className="px-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+                                No image
+                              </span>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-2">
+                            {isEditing ? (
+                              <>
+                                <input
+                                  type="file"
+                                  accept="image/png,image/jpeg,image/webp"
+                                  onChange={(event) => {
+                                    const file = event.target.files?.[0] || null;
+                                    setDraftCategoryImageFile(file);
+                                  }}
+                                  className="w-full rounded-3xl border border-black/10 bg-white px-4 py-2 text-sm outline-none transition focus:border-emerald-900 focus:ring-4 focus:ring-emerald-100"
+                                />
+                                {draftCategoryImageFile ? (
+                                  <p className="text-xs text-muted">Selected: {draftCategoryImageFile.name}</p>
+                                ) : draftCategoryImage ? (
+                                  <p className="text-xs text-muted">Current image kept unless you upload a new one.</p>
+                                ) : (
+                                  <p className="text-xs text-muted">Upload an image to show it in storefront category filters.</p>
+                                )}
+                              </>
+                            ) : category.image ? (
+                              <a
+                                href={category.image}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block break-all text-xs text-muted transition hover:text-emerald-900"
+                              >
+                                {category.image}
+                              </a>
+                            ) : (
+                              <p className="text-xs text-muted">This category has no visual assigned yet.</p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 align-top text-sm text-muted">
+                        <span className="break-all">{category.id}</span>
+                      </td>
                       <td className="px-4 py-4 text-sm">
                         <span
                           className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
@@ -269,8 +320,8 @@ export default function CategoriesPage() {
                           {category.active ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-4 py-4 text-sm">
-                        <div className="flex flex-wrap gap-2">
+                      <td className="px-4 py-4 align-top text-sm">
+                        <div className="flex min-w-[180px] flex-wrap gap-2">
                           {isEditing ? (
                             <>
                               <button

@@ -29,7 +29,7 @@ export default function OffersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-40 pb-24 flex items-center justify-center px-4">
+      <div className="page-shell-roomy min-h-screen flex items-center justify-center px-4">
         <div className="glass w-full max-w-md rounded-[2.5rem] border border-black/5 bg-white/50 p-12 text-center shadow-xl">
           <div className="mx-auto mb-6 h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           <h2 className="text-2xl font-serif font-bold text-foreground">Loading offers</h2>
@@ -40,7 +40,7 @@ export default function OffersPage() {
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen overflow-hidden">
+    <div className="page-shell container mx-auto min-h-screen overflow-hidden px-6 md:px-12">
       <div className="text-center mb-20 relative">
         <motion.div
             initial={{ opacity: 0, y: 20 }}

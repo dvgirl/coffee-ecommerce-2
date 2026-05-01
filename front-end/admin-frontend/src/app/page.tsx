@@ -198,7 +198,8 @@ export default function OverviewPage() {
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
         <AdminCard title="Fulfillment queue" eyebrow="Operations">
           <div className="overflow-hidden rounded-[1.5rem] border border-black/6">
-            <table className="min-w-full divide-y divide-black/6 text-left">
+            <div className="admin-table-wrap">
+            <table className="admin-table min-w-full divide-y divide-black/6 text-left">
               <thead className="bg-background">
                 <tr className="text-xs uppercase tracking-[0.16em] text-muted">
                   <th className="px-4 py-3 font-bold">Order</th>
@@ -234,6 +235,7 @@ export default function OverviewPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </AdminCard>
 

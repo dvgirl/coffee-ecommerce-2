@@ -33,7 +33,7 @@ export default function AdminSidebar() {
   };
 
   return (
-    <aside className="w-full lg:w-80 shrink-0 rounded-[2rem] border border-black/8 bg-[linear-gradient(180deg,_rgba(250,246,240,0.96)_0%,_rgba(255,255,255,0.96)_100%)] p-5 shadow-[0_20px_60px_rgba(42,28,22,0.08)] lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] h-auto">
+    <aside className="admin-surface w-full shrink-0 rounded-[2rem] bg-[linear-gradient(180deg,_rgba(250,246,240,0.96)_0%,_rgba(255,255,255,0.96)_100%)] p-4 sm:p-5 lg:w-[19rem] lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
       <div className="flex h-full flex-col">
         <div className="rounded-[1.6rem] bg-coffee-dark px-5 py-5 text-white">
           <div className="flex items-center gap-3">
@@ -48,7 +48,7 @@ export default function AdminSidebar() {
           </p>
         </div>
 
-        <nav className="mt-6 space-y-2">
+        <nav className="mt-6 flex gap-2 overflow-x-auto pb-1 lg:block lg:space-y-2 lg:overflow-visible lg:pb-0">
           {adminLinks.map((link) => {
             const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
 
@@ -57,7 +57,7 @@ export default function AdminSidebar() {
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex items-center justify-between rounded-[1.35rem] border px-4 py-3.5 transition-all duration-200",
+                  "flex min-w-max items-center justify-between gap-4 rounded-[1.35rem] border px-4 py-3.5 transition-all duration-200 lg:min-w-0",
                   isActive ? "border-primary/30 bg-primary/12 text-primary shadow-sm" : "border-transparent bg-white/75 text-foreground/75 hover:border-black/8 hover:bg-white",
                 )}
               >
@@ -82,7 +82,7 @@ export default function AdminSidebar() {
           </div>
         </div>
 
-        <div className="mt-auto rounded-[1.4rem] border border-black/6 bg-white/80 p-4">
+        <div className="mt-6 rounded-[1.4rem] border border-black/6 bg-white/80 p-4 lg:mt-auto">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted">On duty</p>
           <div className="mt-3 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-coffee-light text-sm font-bold text-coffee-dark">VM</div>

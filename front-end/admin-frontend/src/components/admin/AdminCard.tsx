@@ -11,7 +11,7 @@ export default function AdminCard({ title, eyebrow, className, children }: Admin
   return (
     <section
       className={cn(
-        "rounded-[1.8rem] border border-black/6 bg-white/88 p-6 shadow-[0_16px_48px_rgba(42,28,22,0.05)] backdrop-blur-sm",
+        "admin-surface rounded-[1.8rem] p-5 sm:p-6",
         className,
       )}
     >

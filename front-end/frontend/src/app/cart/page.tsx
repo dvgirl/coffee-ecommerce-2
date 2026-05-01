@@ -63,7 +63,7 @@ export default function CartPage() {
 
   if (!isCartReady || loadingProducts) {
     return (
-      <div className="min-h-screen pt-40 pb-24 flex items-center justify-center px-4">
+      <div className="page-shell-roomy min-h-screen flex items-center justify-center px-4">
         <div className="glass w-full max-w-md rounded-[2.5rem] border border-black/5 bg-white/50 p-12 text-center shadow-xl">
           <div className="mx-auto mb-6 h-12 w-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           <h2 className="text-2xl font-serif font-bold text-foreground">Loading your cart</h2>
@@ -75,7 +75,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen pt-40 pb-24 flex flex-col items-center justify-center text-center px-4">
+      <div className="page-shell-roomy min-h-screen flex flex-col items-center justify-center text-center px-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -95,7 +95,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen">
+    <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
       <motion.h1 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -239,5 +239,4 @@ export default function CartPage() {
     </div>
   );
 }
-
 

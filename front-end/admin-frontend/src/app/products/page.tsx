@@ -91,7 +91,7 @@ export default function ProductsPage() {
         searchPlaceholder="Search by product name, origin, or notes"
       />
 
-      <div className="grid gap-4 md:grid-cols-[1fr_1fr_1.6fr]">
+      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1.6fr]">
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-slate-700 shadow-sm">
           <p className="text-sm font-semibold text-slate-900">Products</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.total}</p>
@@ -100,7 +100,7 @@ export default function ProductsPage() {
           <p className="text-sm font-semibold text-slate-900">Out of stock</p>
           <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.lowStock}</p>
         </div>
-        <div className="flex items-center justify-between rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-900">Featured</p>
             <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.featured}</p>
@@ -111,8 +111,8 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1fr]">
+      <section className="admin-surface rounded-3xl p-4 sm:p-5">
+        <div className="grid gap-4 lg:grid-cols-3">
           <label className="space-y-2 text-sm">
             <span className="font-medium text-slate-900">Category</span>
             <select
@@ -158,9 +158,9 @@ export default function ProductsPage() {
         {error ? <p className="mt-4 text-sm text-rose-700">{error}</p> : null}
       </section>
 
-<section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <section className="admin-surface rounded-3xl p-4">
+        <div className="admin-table-wrap">
+          <table className="admin-table min-w-full divide-y divide-slate-200 text-left text-sm">
             <thead className="bg-slate-50 text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-semibold">Product</th>

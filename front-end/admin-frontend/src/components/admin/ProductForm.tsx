@@ -250,7 +250,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-8 rounded-[1.75rem] border border-slate-200 bg-white p-8 shadow-[0_24px_64px_rgba(15,23,42,0.08)]"
+      className="space-y-8 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-[0_24px_64px_rgba(15,23,42,0.08)] sm:p-6 lg:p-8"
     >
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
@@ -266,7 +266,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex h-12 items-center justify-center rounded-full bg-emerald-950 px-6 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-emerald-950 px-6 text-sm font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300 sm:w-auto"
         >
           {loading ? "Saving…" : mode === "create" ? "Create product" : "Save changes"}
         </button>
@@ -405,7 +405,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
               {form.variants.map((variant, index) => (
                 <div
                   key={`${variant.label}-${index}`}
-                  className="grid gap-3 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-[1.25fr_0.9fr_0.9fr_0.9fr_0.35fr]"
+                  className="grid gap-3 rounded-[1.75rem] border border-slate-200 bg-white p-4 shadow-sm xl:grid-cols-[1.25fr_0.9fr_0.9fr_0.9fr_0.45fr]"
                 >
                   <label className="space-y-2 text-sm">
                     <span className="font-medium text-slate-600">Label</span>
@@ -490,7 +490,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
                         variants: prev.variants.filter((_, index2) => index2 !== index),
                       }))
                     }
-                    className="h-full rounded-full border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 hover:text-rose-900"
+                    className="rounded-full border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 hover:text-rose-900 xl:h-full"
                   >
                     Remove
                   </button>
@@ -577,7 +577,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
             {existingImages.length > 0 ? (
               <div className="space-y-3 rounded-[1.75rem] border border-slate-200 bg-white p-4">
                 <p className="text-sm font-semibold text-slate-700">Existing images</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {existingImages.map((url, index) => (
                     <div key={`${url}-${index}`} className="relative overflow-hidden rounded-[1.5rem] border border-slate-200">
                       <img src={url} alt={`Existing image ${index + 1}`} className="h-24 w-full object-cover" />
@@ -596,7 +596,7 @@ export default function ProductForm({ mode, product }: ProductFormProps) {
             {imagePreviews.length > 0 ? (
               <div className="space-y-3 rounded-[1.75rem] border border-slate-200 bg-white p-4">
                 <p className="text-sm font-semibold text-slate-700">Preview selected images</p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
                   {imagePreviews.map((preview, index) => (
                     <img
                       key={`${preview}-${index}`}

@@ -97,7 +97,7 @@ export default function CustomersPage() {
                     <p className="text-lg font-semibold text-foreground">{customer.name}</p>
                     <p className="mt-1 text-sm text-muted">{customer.phoneNumber}</p>
                   </div>
-                  <div className="text-left md:text-right">
+                  <div className="rounded-2xl bg-white/80 px-4 py-3 text-left md:text-right">
                     <p className={`text-sm font-bold ${customer.isVerified ? 'text-green-600' : 'text-amber-600'}`}>
                       {customer.isVerified ? 'Verified' : 'Unverified'}
                     </p>

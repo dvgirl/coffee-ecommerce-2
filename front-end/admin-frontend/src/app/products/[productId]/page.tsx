@@ -21,6 +21,13 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
     notFound();
   }
 
+  const productImages =
+    product.images && product.images.length > 0
+      ? product.images
+      : product.image
+        ? [product.image]
+        : [];
+
   return (
     <div className="space-y-6">
       <AdminTopbar
@@ -45,8 +52,55 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+        <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
           <div className="space-y-6">
+            <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Product gallery</p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Images used in the storefront product cards and detail page.
+                  </p>
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                  {productImages.length} image{productImages.length === 1 ? "" : "s"}
+                </p>
+              </div>
+
+              {productImages.length > 0 ? (
+                <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(220px,0.65fr)]">
+                  <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white">
+                    <img
+                      src={productImages[0]}
+                      alt={product.name}
+                      className="h-full max-h-[420px] w-full object-cover"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
+                    {productImages.map((url, index) => (
+                      <a
+                        key={`${url}-${index}`}
+                        href={url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white"
+                      >
+                        <img
+                          src={url}
+                          alt={`${product.name} ${index + 1}`}
+                          className="h-28 w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-5 rounded-[1.75rem] border border-dashed border-slate-300 bg-white px-6 py-12 text-center text-sm text-slate-500">
+                  No product images have been added yet.
+                </div>
+              )}
+            </section>
+
             <section className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Storefront content</p>
               <div className="space-y-6 pt-4 text-sm text-slate-700">
@@ -61,16 +115,12 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
                 <div>
                   <p className="text-sm text-slate-500">Image URLs</p>
                   <div className="mt-2 space-y-2 text-sm">
-                    {(product.images && product.images.length > 0
-                      ? product.images
-                      : product.image
-                      ? [product.image]
-                      : []).map((url, index) => (
+                    {productImages.map((url, index) => (
                       <p key={`${url}-${index}`} className="break-all">
                         {url}
                       </p>
                     ))}
-                    {!product.images?.length && !product.image ? (
+                    {productImages.length === 0 ? (
                       <p>No image URL provided</p>
                     ) : null}
                   </div>
@@ -100,7 +150,7 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
               </div>
             </section>
 
-            <section className="grid gap-4 lg:grid-cols-3">
+            <section className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
               <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-700">
                 <p className="font-semibold uppercase tracking-[0.2em] text-slate-500">Origin</p>
                 <p className="mt-4"><span className="font-semibold">Origin:</span> {product.origin}</p>

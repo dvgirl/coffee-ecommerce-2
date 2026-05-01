@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function AboutPage() {
   return (
-    <div className="pt-32 pb-24 overflow-hidden">
+    <div className="page-shell overflow-hidden">
       {/* Hero Section */}
       <section className="relative px-6 md:px-12 mb-32">
         <div className="container mx-auto text-center relative z-10">

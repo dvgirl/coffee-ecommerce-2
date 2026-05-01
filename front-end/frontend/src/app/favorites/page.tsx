@@ -31,7 +31,7 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen">
+    <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

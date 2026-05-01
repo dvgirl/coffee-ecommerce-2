@@ -73,7 +73,7 @@ export default function SubscribePage() {
 
   if (isSuccess) {
      return (
-      <div className="pt-32 pb-24 px-6 container mx-auto min-h-screen flex flex-col items-center justify-center text-center relative">
+      <div className="page-shell container mx-auto min-h-screen flex flex-col items-center justify-center px-6 text-center relative">
         <Confetti width={width} height={height} recycle={false} numberOfPieces={500} colors={['#C69C6D', '#2A1C16', '#F5EBE1']} />
         
         <motion.div 
@@ -118,7 +118,7 @@ export default function SubscribePage() {
   }
 
   return (
-    <div className="min-h-screen pt-32 pb-40 flex flex-col relative overflow-hidden bg-[#FDFBF8]">
+    <div className="page-shell-roomy min-h-screen flex flex-col relative overflow-hidden bg-[#FDFBF8]">
       {/* Background Ornaments */}
       <div className="fixed top-20 right-0 w-[800px] h-[800px] bg-primary/5 rounded-full blur-[150px] -z-10 pointer-events-none" />
       <div className="fixed bottom-0 left-0 w-[600px] h-[600px] bg-coffee-light/10 rounded-full blur-[120px] -z-10 pointer-events-none" />

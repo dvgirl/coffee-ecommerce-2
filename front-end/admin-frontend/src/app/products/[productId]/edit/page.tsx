@@ -29,7 +29,7 @@ export default async function EditProductPage({ params }: EditProductPageProps) 
         description="Make changes to the shared product schema used by the storefront and admin experience."
         badge="Edit product"
       />
-      <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="space-y-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <p className="text-sm text-slate-600">Editing the record used by both the storefront and admin panel.</p>
           <Link href={`/products/${product.id}`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-emerald-900 hover:text-emerald-900">

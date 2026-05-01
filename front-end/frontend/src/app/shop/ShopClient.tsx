@@ -209,7 +209,7 @@ export default function ShopClient() {
   };
 
   return (
-    <div className="container mx-auto min-h-screen px-5 pb-12 pt-28 md:px-12">
+    <div className="page-shell container mx-auto min-h-screen px-5 md:px-12">
       <section className="rounded-[2.5rem] border border-black/6 bg-[linear-gradient(180deg,_rgba(245,235,225,0.65)_0%,_rgba(255,255,255,0.92)_100%)] px-6 py-8 shadow-[0_24px_60px_rgba(42,28,22,0.07)] md:px-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-2xl">

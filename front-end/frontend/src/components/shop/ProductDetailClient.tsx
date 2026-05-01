@@ -64,7 +64,7 @@ export default function ProductDetailClient({
   const favorite = isFavorite(product.id);
 
   return (
-    <div className="container mx-auto min-h-screen px-6 pb-24 pt-32 md:px-12">
+    <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
       <Link
         href="/shop"
         className="mb-10 inline-flex items-center gap-2 text-sm font-semibold text-muted transition-colors hover:text-primary"

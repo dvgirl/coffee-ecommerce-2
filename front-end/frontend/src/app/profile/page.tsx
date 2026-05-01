@@ -358,7 +358,7 @@ export default function ProfilePage() {
 
   if (!currentUser) {
     return (
-      <div className="container mx-auto min-h-screen px-6 pt-32 pb-24 md:px-12">
+      <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
         <div className="glass rounded-[2rem] border border-black/5 bg-white/60 p-10 text-center shadow-xl">
           <p className="text-[11px] font-black uppercase tracking-[0.24em] text-primary">Preparing account</p>
           <h1 className="mt-4 font-serif text-3xl font-bold text-foreground">Loading your profile...</h1>
@@ -369,7 +369,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="pt-32 pb-24 px-6 md:px-12 container mx-auto min-h-screen">
+    <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
       
       {/* Command Center Top Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">

@@ -218,7 +218,7 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="admin-surface rounded-3xl p-4 sm:p-5">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-semibold text-slate-900">Orders</h2>
@@ -249,8 +249,8 @@ export default function OrdersPage() {
           </div>
         ) : null}
 
-        <div className="mt-5 overflow-x-auto">
-          <table className="min-w-full border-collapse text-left text-sm">
+        <div className="admin-table-wrap mt-5">
+          <table className="admin-table min-w-full border-collapse text-left text-sm">
             <thead>
               <tr>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Order</th>
@@ -319,7 +319,7 @@ export default function OrdersPage() {
                           {new Date(order.createdAt).toLocaleDateString()} · {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
                             <button
                               type="button"
                               onClick={() => setExpandedOrderId((current) => (current === order.id ? null : order.id))}
@@ -345,7 +345,7 @@ export default function OrdersPage() {
                       {expandedOrderId === order.id ? (
                         <tr>
                           <td colSpan={6} className="bg-slate-50 px-4 py-5">
-                            <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+                            <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
                               <div className="space-y-5">
                                 <div>
                                   <h3 className="text-sm font-semibold text-slate-900">Shipping information</h3>
@@ -380,8 +380,8 @@ export default function OrdersPage() {
 
                                 <div>
                                   <h3 className="text-sm font-semibold text-slate-900">Order items</h3>
-                                  <div className="mt-3 overflow-x-auto">
-                                    <table className="min-w-full text-sm">
+                                  <div className="admin-table-wrap mt-3">
+                                    <table className="admin-table min-w-full text-sm">
                                       <thead>
                                         <tr className="bg-slate-100 text-slate-600">
                                           <th className="border border-slate-200 px-3 py-2 text-left">Item</th>
