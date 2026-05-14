@@ -81,6 +81,54 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
   return payload.data as T;
 };
 
+export type AdminBulkUploadRowStatus = "ok" | "created" | "updated" | "error";
+
+export type AdminBulkUploadResult = {
+  row: number;
+  status: AdminBulkUploadRowStatus;
+  errors?: string[];
+  preview?: {
+    id: number | null;
+    name: string;
+    categoryId: string | null;
+    basePrice: number | null;
+    inStock: boolean;
+    origin: string;
+  };
+};
+
+export type AdminBulkUploadResponse = {
+  dryRun: boolean;
+  mode: "create" | "upsert" | string;
+  summary: {
+    totalRows: number;
+    created: number;
+    updated: number;
+    failed: number;
+  };
+  results: AdminBulkUploadResult[];
+};
+
+export async function bulkUploadProductsCsv(
+  file: File,
+  options: { dryRun?: boolean; mode?: "create" | "upsert" } = {},
+): Promise<AdminBulkUploadResponse> {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const qs = new URLSearchParams();
+  if (options.dryRun) qs.set("dryRun", "true");
+  if (options.mode) qs.set("mode", options.mode);
+  const suffix = qs.toString() ? `?${qs.toString()}` : "";
+
+  const response = await adminFetch(`/admin/products/bulk-upload${suffix}`, {
+    method: "POST",
+    body: formData,
+  });
+
+  return parseResponse<AdminBulkUploadResponse>(response);
+}
+
 export async function getProducts(
   query: ProductQuery = {},
 ): Promise<ProductListResponse> {

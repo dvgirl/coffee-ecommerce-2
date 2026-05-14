@@ -6,6 +6,8 @@ const {
   getChannelPerformance,
   getFulfillmentQueue,
   getProductInventory,
+  getSalesOverview,
+  getRecentActivities,
 } = require("../controllers/adminAnalyticsController");
 
 const router = express.Router();
@@ -18,5 +20,7 @@ router.get("/revenue-series", getRevenueSeries);
 router.get("/channels", getChannelPerformance);
 router.get("/fulfillment-queue", getFulfillmentQueue);
 router.get("/inventory", getProductInventory);
+router.get("/sales-overview", getSalesOverview);
+router.get("/recent-activities", getRecentActivities);
 
 module.exports = router;

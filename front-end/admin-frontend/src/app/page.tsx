@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminTopbar from "@/components/admin/AdminTopbar";
+import SalesOverviewCard from "@/components/admin/SalesOverviewCard";
+import RecentActivitiesCard from "@/components/admin/RecentActivitiesCard";
 import {
   getAdminOverviewStats,
   getRevenueSeriesData,
@@ -18,12 +20,8 @@ import {
 } from "@/lib/admin-data";
 import { cn } from "@/lib/utils";
 import {
-  BellRing,
-  ChartNoAxesCombined,
   CreditCard,
-  MessageSquareMore,
   PackageCheck,
-  ShieldCheck,
   ShoppingBag,
   Users,
 } from "lucide-react";
@@ -145,6 +143,8 @@ export default function OverviewPage() {
           );
         })}
       </div>
+
+      <SalesOverviewCard />
 
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
         <AdminCard title="Revenue pulse" eyebrow="7 day trend">
@@ -283,6 +283,8 @@ export default function OverviewPage() {
           </AdminCard>
         </div>
       </div>
+
+      <RecentActivitiesCard />
 
       <AdminCard title="Activity feed" eyebrow="Recent signals">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

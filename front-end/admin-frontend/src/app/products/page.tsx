@@ -105,9 +105,17 @@ export default function ProductsPage() {
             <p className="text-sm font-semibold text-slate-900">Featured</p>
             <p className="mt-3 text-3xl font-semibold text-slate-900">{summary.featured}</p>
           </div>
-          <Link href="/products/new" className="rounded-full bg-emerald-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-900">
-            Add product
-          </Link>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Link
+              href="/products/bulk-upload"
+              className="rounded-full border border-emerald-950/20 bg-white px-4 py-3 text-sm font-semibold text-emerald-950 transition hover:border-emerald-950 hover:bg-emerald-50"
+            >
+              Bulk upload
+            </Link>
+            <Link href="/products/new" className="rounded-full bg-emerald-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-900">
+              Add product
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const Review = require("../models/Review");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 
@@ -24,6 +25,8 @@ const serializeProduct = (product) => ({
   originalPrice: product.originalPrice,
   inStock: product.inStock,
   rating: product.rating,
+  avgRating: product.avgRating ?? null,
+  reviewCount: product.reviewCount ?? 0,
   notes: product.notes,
   description: product.description,
   origin: product.origin,
@@ -39,6 +42,25 @@ const serializeProduct = (product) => ({
   createdAt: product.createdAt,
   updatedAt: product.updatedAt,
 });
+
+const attachReviewSummary = async (products) => {
+  const ids = products.map((p) => p.productId).filter((id) => Number.isFinite(id));
+  if (ids.length === 0) return products;
+
+  const summaries = await Review.aggregate([
+    { $match: { productId: { $in: ids }, status: "approved" } },
+    { $group: { _id: "$productId", avgRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+  ]);
+
+  const map = new Map(
+    summaries.map((s) => [Number(s._id), { avgRating: Math.round((s.avgRating || 0) * 10) / 10, reviewCount: s.reviewCount || 0 }]),
+  );
+
+  return products.map((product) => ({
+    ...product,
+    ...(map.get(product.productId) || { avgRating: null, reviewCount: 0 }),
+  }));
+};
 
 const normalizeBoolean = (value) => {
   if (value === undefined) return undefined;
@@ -242,10 +264,12 @@ const listProducts = asyncHandler(async (req, res) => {
     Product.countDocuments(filter),
   ]);
 
+  const withSummary = await attachReviewSummary(items.map((item) => item.toObject ? item.toObject() : item));
+
   res.status(200).json({
     success: true,
     data: {
-      items: items.map(serializeProduct),
+      items: withSummary.map(serializeProduct),
       filters: {
         categories: categories.map((item) => item.name),
       },
@@ -273,9 +297,18 @@ const getProductById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
+  const [summary] = await Review.aggregate([
+    { $match: { productId, status: "approved" } },
+    { $group: { _id: "$productId", avgRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+  ]);
+
+  const productObject = product.toObject();
+  productObject.avgRating = summary?.avgRating ? Math.round(summary.avgRating * 10) / 10 : null;
+  productObject.reviewCount = summary?.reviewCount || 0;
+
   res.status(200).json({
     success: true,
-    data: serializeProduct(product),
+    data: serializeProduct(productObject),
   });
 });
 

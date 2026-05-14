@@ -487,7 +487,7 @@ export default function ShopClient() {
                           </div>
                           <div className="inline-flex items-center gap-1 rounded-full bg-coffee-light px-3 py-1 text-sm font-semibold text-foreground">
                             <Check className="h-3.5 w-3.5 text-primary" />
-                            {product.rating.toFixed(1)}
+                            {(product.avgRating ?? product.rating).toFixed(1)}
                           </div>
                         </div>
 

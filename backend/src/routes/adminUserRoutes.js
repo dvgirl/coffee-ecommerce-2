@@ -5,6 +5,7 @@ const {
   getUserById,
   updateUser,
   deleteUser,
+  getUserOrderHistory,
 } = require("../controllers/adminUserController");
 
 const router = express.Router();
@@ -14,6 +15,7 @@ router.use(protect, requireAdmin);
 
 router.get("/", getAllUsers);
 router.get("/:userId", getUserById);
+router.get("/:userId/orders", getUserOrderHistory);
 router.patch("/:userId", updateUser);
 router.delete("/:userId", deleteUser);
 

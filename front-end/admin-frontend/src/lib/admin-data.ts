@@ -11,11 +11,19 @@ import {
   getChannelPerformance,
   getFulfillmentQueue,
   getProductInventory,
+  getSalesOverview,
+  getRecentActivities,
   type AdminOverviewStat,
   type AdminRevenueSeriesItem,
   type AdminChannelPerformance,
   type AdminFulfillmentQueueItem,
   type AdminProductInventoryItem,
+  type AdminSalesOverview,
+  type AdminSalesOverviewPoint,
+  type AdminSalesOverviewPeriod,
+  type AdminRecentActivities,
+  type AdminRecentActivityType,
+  type AdminRecentActivityItem,
 } from "./admin-analytics-api";
 
 // Re-export types for convenience
@@ -25,6 +33,12 @@ export type {
   AdminChannelPerformance,
   AdminFulfillmentQueueItem,
   AdminProductInventoryItem,
+  AdminSalesOverview,
+  AdminSalesOverviewPoint,
+  AdminSalesOverviewPeriod,
+  AdminRecentActivities,
+  AdminRecentActivityType,
+  AdminRecentActivityItem,
 } from "./admin-analytics-api";
 
 // Export API functions
@@ -34,6 +48,8 @@ export {
   getChannelPerformance,
   getFulfillmentQueue,
   getProductInventory,
+  getSalesOverview,
+  getRecentActivities,
 };
 
 // Legacy exports for backward compatibility - these will be async functions
@@ -42,6 +58,8 @@ export const getRevenueSeriesData = getRevenueSeries;
 export const getChannelPerformanceData = getChannelPerformance;
 export const getFulfillmentQueueData = getFulfillmentQueue;
 export const getProductInventoryData = getProductInventory;
+export const getSalesOverviewData = getSalesOverview;
+export const getRecentActivitiesData = getRecentActivities;
 
 export const customerSegments = [
   { name: "Club members", size: "482", spend: "$124 avg", loyalty: "High", note: "Most responsive to monthly curation drops." },

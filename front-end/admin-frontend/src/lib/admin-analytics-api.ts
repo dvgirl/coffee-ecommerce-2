@@ -39,6 +39,39 @@ export type AdminProductInventoryItem = {
   nextBatch: string;
 };
 
+export type AdminSalesOverviewPeriod = "daily" | "weekly" | "monthly";
+
+export type AdminSalesOverviewPoint = {
+  label: string;
+  revenue: number;
+  orders: number;
+  sales: number;
+};
+
+export type AdminSalesOverview = {
+  period: AdminSalesOverviewPeriod | string;
+  totals: {
+    revenue: number;
+    orders: number;
+    sales: number;
+  };
+  series: AdminSalesOverviewPoint[];
+};
+
+export type AdminRecentActivityType = "order" | "customer" | "stock";
+
+export type AdminRecentActivityItem = {
+  type: AdminRecentActivityType;
+  title: string;
+  detail: string;
+  time: string;
+  meta?: Record<string, unknown>;
+};
+
+export type AdminRecentActivities = {
+  items: AdminRecentActivityItem[];
+};
+
 const parseResponse = async <T>(response: Response): Promise<T> => {
   const payload = await response.json();
   if (!response.ok) {
@@ -85,4 +118,20 @@ export async function getProductInventory(): Promise<AdminProductInventoryItem[]
   });
 
   return parseResponse<AdminProductInventoryItem[]>(response);
+}
+
+export async function getSalesOverview(period: AdminSalesOverviewPeriod = "daily"): Promise<AdminSalesOverview> {
+  const response = await adminFetch(`/admin/analytics/sales-overview?period=${encodeURIComponent(period)}`, {
+    cache: "no-store",
+  });
+
+  return parseResponse<AdminSalesOverview>(response);
+}
+
+export async function getRecentActivities(limit = 10): Promise<AdminRecentActivities> {
+  const response = await adminFetch(`/admin/analytics/recent-activities?limit=${encodeURIComponent(String(limit))}`, {
+    cache: "no-store",
+  });
+
+  return parseResponse<AdminRecentActivities>(response);
 }

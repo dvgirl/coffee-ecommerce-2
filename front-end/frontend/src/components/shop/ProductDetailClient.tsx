@@ -9,6 +9,7 @@ import { useAppContext } from "@/context/CartContext";
 import { VARIANTS } from "@/lib/data";
 import { cn } from "@/lib/utils";
 import type { ProductRecord } from "@/lib/product-api";
+import { createReview, getProductReviews, type ReviewRecord } from "@/lib/review-api";
 
 type ProductDetailClientProps = {
   product: ProductRecord;
@@ -62,6 +63,62 @@ export default function ProductDetailClient({
     ? product.inStock
     : selectedVariant.stock > 0;
   const favorite = isFavorite(product.id);
+
+  const displayRating = product.avgRating ?? product.rating;
+  const displayReviewCount = product.reviewCount ?? 0;
+
+  const [reviews, setReviews] = useState<ReviewRecord[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState<string | null>(null);
+  const [reviewsSummary, setReviewsSummary] = useState({ avgRating: displayRating, reviewCount: displayReviewCount });
+
+  const [reviewName, setReviewName] = useState("");
+  const [reviewPhone, setReviewPhone] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewContent, setReviewContent] = useState("");
+  const [reviewImages, setReviewImages] = useState<File[]>([]);
+  const [reviewImagePreviews, setReviewImagePreviews] = useState<string[]>([]);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    setReviewsLoading(true);
+    setReviewsError(null);
+
+    void getProductReviews(product.id, 12)
+      .then((payload) => {
+        if (!alive) return;
+        setReviews(payload.items);
+        setReviewsSummary({ avgRating: payload.avgRating, reviewCount: payload.reviewCount });
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setReviewsError(err instanceof Error ? err.message : "Failed to load reviews");
+      })
+      .finally(() => {
+        if (!alive) return;
+        setReviewsLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [product.id]);
+
+  useEffect(() => {
+    if (reviewImagePreviews.length === 0) return;
+    return () => {
+      reviewImagePreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [reviewImagePreviews]);
+
+  const onPickReviewImages = (files: FileList | null) => {
+    if (!files) return;
+    const picked = Array.from(files).slice(0, 4);
+    setReviewImages(picked);
+    setReviewImagePreviews(picked.map((file) => URL.createObjectURL(file)));
+  };
 
   return (
     <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
@@ -163,7 +220,7 @@ export default function ProductDetailClient({
           <div className="flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-black/8 bg-white px-4 py-2 text-sm font-semibold text-foreground">
               <Star className="h-4 w-4 fill-primary text-primary" />
-              {product.rating.toFixed(1)} rating
+              {displayRating.toFixed(1)} rating
             </div>
             <div className="text-3xl font-bold text-primary">
               ${displayPrice.toFixed(2)}
@@ -258,6 +315,186 @@ export default function ProductDetailClient({
             <BrewCard label="Water temp" value={product.serve.temp} />
             <BrewCard label="Brew time" value={product.serve.time} />
             <BrewCard label="Body / sweetness" value={`${product.stats.body}/5 • ${product.stats.sweetness}/5`} />
+          </div>
+
+          <div className="mt-10 rounded-[2.2rem] border border-black/6 bg-white/85 p-7 shadow-[0_18px_50px_rgba(42,28,22,0.05)]">
+            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">Customer reviews</p>
+                <div className="mt-3 flex items-center gap-3">
+                  <div className="inline-flex items-center gap-1 rounded-full bg-coffee-light px-3 py-1 text-sm font-semibold text-foreground">
+                    <Star className="h-4 w-4 fill-primary text-primary" />
+                    {Number(reviewsSummary.avgRating || displayRating).toFixed(1)}
+                  </div>
+                  <p className="text-sm text-muted">
+                    {reviewsSummary.reviewCount} review{reviewsSummary.reviewCount === 1 ? "" : "s"}
+                  </p>
+                </div>
+              </div>
+              <div className="text-sm text-muted">Your review will appear after approval.</div>
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+              <form
+                className="rounded-[1.8rem] border border-black/6 bg-background p-5"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (submittingReview) return;
+                  setSubmittingReview(true);
+                  setReviewNotice(null);
+
+                  void createReview({
+                    productId: product.id,
+                    name: reviewName.trim(),
+                    phoneNumber: reviewPhone.trim() || undefined,
+                    rating: reviewRating,
+                    content: reviewContent.trim(),
+                    images: reviewImages,
+                  })
+                    .then((payload) => {
+                      setReviewNotice(payload.message || "Review submitted for moderation");
+                      setReviewName("");
+                      setReviewPhone("");
+                      setReviewRating(5);
+                      setReviewContent("");
+                      setReviewImages([]);
+                      setReviewImagePreviews([]);
+                    })
+                    .catch((err) => {
+                      setReviewNotice(err instanceof Error ? err.message : "Failed to submit review");
+                    })
+                    .finally(() => setSubmittingReview(false));
+                }}
+              >
+                <p className="text-sm font-bold text-foreground">Write a review</p>
+
+                <div className="mt-4 grid gap-3">
+                  <label className="space-y-2 text-sm">
+                    <span className="font-semibold text-foreground">Name</span>
+                    <input
+                      value={reviewName}
+                      onChange={(e) => setReviewName(e.target.value)}
+                      placeholder="Your name"
+                      className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+                      required
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm">
+                    <span className="font-semibold text-foreground">Phone (optional)</span>
+                    <input
+                      value={reviewPhone}
+                      onChange={(e) => setReviewPhone(e.target.value)}
+                      placeholder="Phone number"
+                      className="w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+                    />
+                  </label>
+                  <div className="space-y-2 text-sm">
+                    <p className="font-semibold text-foreground">Rating</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {Array.from({ length: 5 }).map((_, idx) => {
+                        const value = idx + 1;
+                        const active = value <= reviewRating;
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setReviewRating(value)}
+                            className={cn(
+                              "inline-flex h-10 w-10 items-center justify-center rounded-2xl border transition",
+                              active
+                                ? "border-primary bg-primary/10 text-primary"
+                                : "border-black/10 bg-white text-muted hover:text-primary",
+                            )}
+                            aria-label={`Rate ${value} star`}
+                          >
+                            <Star className={cn("h-5 w-5", active && "fill-primary")} />
+                          </button>
+                        );
+                      })}
+                      <span className="text-sm font-semibold text-foreground">{reviewRating}/5</span>
+                    </div>
+                  </div>
+                  <label className="space-y-2 text-sm">
+                    <span className="font-semibold text-foreground">Review</span>
+                    <textarea
+                      value={reviewContent}
+                      onChange={(e) => setReviewContent(e.target.value)}
+                      placeholder="What did you love? Flavor notes, brew method, experience..."
+                      rows={5}
+                      className="w-full resize-none rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm leading-7 outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
+                      required
+                    />
+                  </label>
+                  <label className="space-y-2 text-sm">
+                    <span className="font-semibold text-foreground">Images (optional)</span>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      multiple
+                      onChange={(e) => onPickReviewImages(e.target.files)}
+                      className="w-full text-sm text-muted file:mr-4 file:rounded-full file:border-0 file:bg-primary/10 file:px-4 file:py-2 file:text-xs file:font-black file:uppercase file:tracking-[0.18em] file:text-primary hover:file:bg-primary/15"
+                    />
+                    {reviewImagePreviews.length > 0 ? (
+                      <div className="mt-3 grid grid-cols-4 gap-2">
+                        {reviewImagePreviews.map((url, idx) => (
+                          <div key={`${url}-${idx}`} className="overflow-hidden rounded-2xl border border-black/10 bg-white">
+                            <img src={url} alt="Selected review image" className="h-20 w-full object-cover" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </label>
+                </div>
+
+                {reviewNotice ? <p className="mt-4 text-sm text-muted">{reviewNotice}</p> : null}
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-2xl bg-primary px-5 py-4 text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-black/20"
+                >
+                  {submittingReview ? "Submitting..." : "Submit review"}
+                </button>
+              </form>
+
+              <div className="rounded-[1.8rem] border border-black/6 bg-background p-5">
+                <p className="text-sm font-bold text-foreground">Approved reviews</p>
+                {reviewsError ? (
+                  <p className="mt-4 text-sm text-rose-700">{reviewsError}</p>
+                ) : reviewsLoading ? (
+                  <p className="mt-4 text-sm text-muted">Loading...</p>
+                ) : reviews.length === 0 ? (
+                  <p className="mt-4 text-sm text-muted">No approved reviews yet. Be the first to leave one.</p>
+                ) : (
+                  <div className="mt-4 space-y-4">
+                    {reviews.map((review) => (
+                      <article key={review.id} className="rounded-[1.4rem] border border-black/6 bg-white/70 p-4">
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <p className="font-semibold text-foreground">{review.name}</p>
+                          <div className="inline-flex items-center gap-1 rounded-full bg-coffee-light px-3 py-1 text-sm font-semibold text-foreground">
+                            <Star className="h-4 w-4 fill-primary text-primary" />
+                            {review.rating.toFixed(1)}
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm leading-7 text-muted">{review.content}</p>
+                        {review.images.length > 0 ? (
+                          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {review.images.slice(0, 6).map((url) => (
+                              <div key={url} className="overflow-hidden rounded-2xl border border-black/10 bg-white">
+                                <img src={url} alt="Review image" className="h-24 w-full object-cover" />
+                              </div>
+                            ))}
+                          </div>
+                        ) : null}
+                        <p className="mt-3 text-xs font-bold uppercase tracking-[0.16em] text-muted">
+                          {new Date(review.createdAt).toLocaleDateString()}
+                        </p>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </section>
       </div>

@@ -13,6 +13,8 @@ export type ProductRecord = {
   originalPrice?: number | null;
   inStock: boolean;
   rating: number;
+  avgRating?: number | null;
+  reviewCount?: number;
   notes: string;
   description: string;
   origin: string;

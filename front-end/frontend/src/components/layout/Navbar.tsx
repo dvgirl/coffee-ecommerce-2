@@ -26,8 +26,9 @@ export default function Navbar() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionUserName, setSessionUserName] = useState("");
-  const { cartCount } = useCart();
+  const { cartCount, favorites } = useCart();
   const pathname = usePathname();
+  const favoritesCount = Array.isArray(favorites) ? favorites.length : 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -171,9 +172,12 @@ export default function Navbar() {
             )}
             <Link
               href="/favorites"
-              className="rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
+              className="relative rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
             >
               <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              {favoritesCount > 0 ? (
+                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_8px_16px_rgba(244,63,94,0.35)]" />
+              ) : null}
             </Link>
             <Link
               href="/cart"
@@ -204,6 +208,15 @@ export default function Navbar() {
               ) : (
                 <User className="h-5 w-5" />
               )}
+            </Link>
+            <Link
+              href="/favorites"
+              className="relative rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary"
+            >
+              <Heart className="h-5 w-5" />
+              {favoritesCount > 0 ? (
+                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-rose-500 shadow-[0_8px_16px_rgba(244,63,94,0.35)]" />
+              ) : null}
             </Link>
             <Link
               href="/cart"
