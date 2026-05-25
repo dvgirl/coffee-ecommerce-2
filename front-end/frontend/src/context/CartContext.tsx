@@ -78,7 +78,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       : `${API_BASE_URL}/cart?sessionId=${encodeURIComponent(sessionId)}`;
 
     const response = await fetch(url, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      headers: token
+        ? { Authorization: `Bearer ${token}` }
+        : { "x-session-id": sessionId },
     });
 
     const payload = await response.json();
@@ -182,7 +184,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -214,7 +216,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -251,7 +253,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -285,7 +287,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token ? { Authorization: `Bearer ${token}` } : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),

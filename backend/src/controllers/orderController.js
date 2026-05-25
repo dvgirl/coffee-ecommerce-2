@@ -6,6 +6,9 @@ const { findUserCart, findGuestCart } = require("../services/cartService");
 
 const normalizeSessionId = (value = "") => String(value).trim();
 
+const extractSessionIdFromReq = (req) =>
+  normalizeSessionId(req.body?.sessionId || req.query?.sessionId || req.headers["x-session-id"] || "");
+
 const VALID_STATUSES = ["Received", "Roasting", "Packaging", "Shipped", "Delivered", "Cancelled", "Refunded"];
 const ADVANCE_FLOW = ["Received", "Roasting", "Packaging", "Shipped", "Delivered"];
 
@@ -355,7 +358,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
   await clearOrderedItemsFromCart({
     userId: req.user?._id,
-    sessionId: normalizeSessionId(req.body.sessionId),
+    sessionId: extractSessionIdFromReq(req),
     items: payload.items,
   });
 
