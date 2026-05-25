@@ -13,7 +13,12 @@ const {
 const normalizeSessionId = (value = "") => String(value).trim();
 
 const extractSessionIdFromReq = (req) =>
-  normalizeSessionId(req.body?.sessionId || req.query?.sessionId || req.headers["x-session-id"] || "");
+  normalizeSessionId(
+    req.body?.sessionId ||
+      req.query?.sessionId ||
+      req.headers["x-session-id"] ||
+      "",
+  );
 
 const normalizeItemPayload = (item = {}) => {
   const normalized = {
