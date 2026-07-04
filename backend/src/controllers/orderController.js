@@ -6,8 +6,30 @@ const { findUserCart, findGuestCart } = require("../services/cartService");
 
 const normalizeSessionId = (value = "") => String(value).trim();
 
-const VALID_STATUSES = ["Received", "Roasting", "Packaging", "Shipped", "Delivered", "Cancelled", "Refunded"];
-const ADVANCE_FLOW = ["Received", "Roasting", "Packaging", "Shipped", "Delivered"];
+const extractSessionIdFromReq = (req) =>
+  normalizeSessionId(
+    req.body?.sessionId ||
+      req.query?.sessionId ||
+      req.headers["x-session-id"] ||
+      "",
+  );
+
+const VALID_STATUSES = [
+  "Received",
+  "Roasting",
+  "Packaging",
+  "Shipped",
+  "Delivered",
+  "Cancelled",
+  "Refunded",
+];
+const ADVANCE_FLOW = [
+  "Received",
+  "Roasting",
+  "Packaging",
+  "Shipped",
+  "Delivered",
+];
 
 const statusEta = (status) => {
   switch (status) {
@@ -71,7 +93,9 @@ const COUPONS = {
 };
 
 const getCouponDetails = (code) => {
-  const normalized = String(code || "").trim().toUpperCase();
+  const normalized = String(code || "")
+    .trim()
+    .toUpperCase();
   if (!normalized) return null;
   return COUPONS[normalized] || null;
 };
@@ -85,7 +109,7 @@ const calculateCouponDiscount = (coupon, subtotal, shippingFee, tax) => {
 
   switch (coupon.type) {
     case "percent": {
-      const discountAmount = Math.round((orderAmount * coupon.value) * 100) / 100;
+      const discountAmount = Math.round(orderAmount * coupon.value * 100) / 100;
       return { discountAmount, discountLabel: coupon.label };
     }
     case "shipping": {
@@ -113,18 +137,31 @@ const validateOrderItemsAgainstInventory = async (items) => {
 
   for (const key of Object.keys(groupedItems)) {
     const orderItem = groupedItems[key];
-    const product = await Product.findOne({ productId: orderItem.productId }).select("name variants inStock");
+    const product = await Product.findOne({
+      productId: orderItem.productId,
+    }).select("name variants inStock");
 
     if (!product) {
-      throw new ApiError(400, `Product not found for order item ${orderItem.name}`);
+      throw new ApiError(
+        400,
+        `Product not found for order item ${orderItem.name}`,
+      );
     }
 
-    const variant = Array.isArray(product.variants) && product.variants.length > 0
-      ? product.variants.find((item) => item.label === orderItem.variant)
-      : null;
+    const variant =
+      Array.isArray(product.variants) && product.variants.length > 0
+        ? product.variants.find((item) => item.label === orderItem.variant)
+        : null;
 
-    if (Array.isArray(product.variants) && product.variants.length > 0 && !variant) {
-      throw new ApiError(400, `Variant '${orderItem.variant}' not found for product ${product.name}`);
+    if (
+      Array.isArray(product.variants) &&
+      product.variants.length > 0 &&
+      !variant
+    ) {
+      throw new ApiError(
+        400,
+        `Variant '${orderItem.variant}' not found for product ${product.name}`,
+      );
     }
 
     if (!variant) {
@@ -159,9 +196,10 @@ const applyOrderInventoryChanges = async (items) => {
       continue;
     }
 
-    const variant = Array.isArray(product.variants) && product.variants.length > 0
-      ? product.variants.find((item) => item.label === orderItem.variant)
-      : null;
+    const variant =
+      Array.isArray(product.variants) && product.variants.length > 0
+        ? product.variants.find((item) => item.label === orderItem.variant)
+        : null;
 
     if (!variant) {
       continue;
@@ -172,7 +210,9 @@ const applyOrderInventoryChanges = async (items) => {
     }
 
     product.inStock = Array.isArray(product.variants)
-      ? product.variants.some((item) => !Number.isFinite(item.stock) || item.stock > 0)
+      ? product.variants.some(
+          (item) => !Number.isFinite(item.stock) || item.stock > 0,
+        )
       : product.inStock;
 
     await product.save();
@@ -183,8 +223,8 @@ const clearOrderedItemsFromCart = async ({ userId, sessionId, items }) => {
   const cart = userId
     ? await findUserCart(userId)
     : sessionId
-    ? await findGuestCart(sessionId)
-    : null;
+      ? await findGuestCart(sessionId)
+      : null;
 
   if (!cart) {
     return;
@@ -217,7 +257,16 @@ const buildOrderPayload = (body = {}) => {
   }
 
   const shipping = body.shipping || {};
-  const requiredShipping = ["name", "email", "phone", "address", "city", "state", "country", "zip"];
+  const requiredShipping = [
+    "name",
+    "email",
+    "phone",
+    "address",
+    "city",
+    "state",
+    "country",
+    "zip",
+  ];
   for (const field of requiredShipping) {
     if (!shipping[field]) {
       throw new ApiError(400, `Shipping ${field} is required`);
@@ -233,22 +282,41 @@ const buildOrderPayload = (body = {}) => {
     image: item.image ? String(item.image).trim() : null,
   }));
 
-  if (parsedItems.some((item) => !item.productId || !item.name || item.quantity < 1 || item.price < 0)) {
-    throw new ApiError(400, "Each order item must include a valid productId, name, quantity and price");
+  if (
+    parsedItems.some(
+      (item) =>
+        !item.productId || !item.name || item.quantity < 1 || item.price < 0,
+    )
+  ) {
+    throw new ApiError(
+      400,
+      "Each order item must include a valid productId, name, quantity and price",
+    );
   }
 
-  const subtotal = parsedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = parsedItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
   const shippingFee = 5.0;
   const tax = Math.round(subtotal * 0.08 * 100) / 100;
 
-  const couponCode = String(body.couponCode || "").trim().toUpperCase();
+  const couponCode = String(body.couponCode || "")
+    .trim()
+    .toUpperCase();
   const coupon = couponCode ? getCouponDetails(couponCode) : null;
   if (couponCode && !coupon) {
     throw new ApiError(400, "Coupon code is invalid or expired");
   }
 
-  const { discountAmount, discountLabel } = calculateCouponDiscount(coupon, subtotal, shippingFee, tax);
-  const total = Math.round((subtotal + shippingFee + tax - discountAmount) * 100) / 100;
+  const { discountAmount, discountLabel } = calculateCouponDiscount(
+    coupon,
+    subtotal,
+    shippingFee,
+    tax,
+  );
+  const total =
+    Math.round((subtotal + shippingFee + tax - discountAmount) * 100) / 100;
 
   if (!Number.isFinite(total) || total < 0) {
     throw new ApiError(400, "Total must be a valid positive number");
@@ -276,7 +344,9 @@ const buildOrderPayload = (body = {}) => {
     discountLabel,
     total,
     notes: body.notes ? String(body.notes).trim() : "",
-    paymentMethod: body.paymentMethod ? String(body.paymentMethod).trim() : "Card",
+    paymentMethod: body.paymentMethod
+      ? String(body.paymentMethod).trim()
+      : "Card",
     cancelReason: body.cancelReason ? String(body.cancelReason).trim() : "",
     refundReason: body.refundReason ? String(body.refundReason).trim() : "",
   };
@@ -341,7 +411,10 @@ const createOrder = asyncHandler(async (req, res) => {
 
   await validateOrderItemsAgainstInventory(payload.items);
 
-  const latestOrder = await Order.findOne().sort({ orderId: -1 }).select("orderId").lean();
+  const latestOrder = await Order.findOne()
+    .sort({ orderId: -1 })
+    .select("orderId")
+    .lean();
   const orderId = latestOrder ? latestOrder.orderId + 1 : 1;
   const orderCode = `AURA-${new Date().getFullYear()}-${String(orderId).padStart(4, "0")}`;
 
@@ -355,7 +428,7 @@ const createOrder = asyncHandler(async (req, res) => {
 
   await clearOrderedItemsFromCart({
     userId: req.user?._id,
-    sessionId: normalizeSessionId(req.body.sessionId),
+    sessionId: extractSessionIdFromReq(req),
     items: payload.items,
   });
 
@@ -377,11 +450,17 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 
   if (status === "Cancelled" && !cancelReason) {
-    throw new ApiError(400, "Cancel reason is required when cancelling an order");
+    throw new ApiError(
+      400,
+      "Cancel reason is required when cancelling an order",
+    );
   }
 
   if (status === "Refunded" && !refundReason) {
-    throw new ApiError(400, "Refund reason is required when refunding an order");
+    throw new ApiError(
+      400,
+      "Refund reason is required when refunding an order",
+    );
   }
 
   const order = await Order.findOne({ orderId });
@@ -391,8 +470,14 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   order.status = status;
   order.eta = statusEta(status);
-  order.cancelReason = status === "Cancelled" ? String(cancelReason || "").trim() : order.cancelReason;
-  order.refundReason = status === "Refunded" ? String(refundReason || "").trim() : order.refundReason;
+  order.cancelReason =
+    status === "Cancelled"
+      ? String(cancelReason || "").trim()
+      : order.cancelReason;
+  order.refundReason =
+    status === "Refunded"
+      ? String(refundReason || "").trim()
+      : order.refundReason;
   await order.save();
 
   res.status(200).json({

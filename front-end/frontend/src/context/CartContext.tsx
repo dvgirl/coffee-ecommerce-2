@@ -78,7 +78,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       : `${API_BASE_URL}/cart?sessionId=${encodeURIComponent(sessionId)}`;
 
     const response = await fetch(url, {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      headers: token
+        ? { Authorization: `Bearer ${token}` }
+        : { "x-session-id": sessionId },
     });
 
     const payload = await response.json();
@@ -176,13 +178,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
-        const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
+        const url = token
+          ? `${API_BASE_URL}/cart/me/items`
+          : `${API_BASE_URL}/cart/items`;
 
         const response = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token
+              ? { Authorization: `Bearer ${token}` }
+              : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -208,13 +214,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
-        const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
+        const url = token
+          ? `${API_BASE_URL}/cart/me/items`
+          : `${API_BASE_URL}/cart/items`;
 
         const response = await fetch(url, {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token
+              ? { Authorization: `Bearer ${token}` }
+              : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -245,13 +255,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
-        const url = token ? `${API_BASE_URL}/cart/me/items` : `${API_BASE_URL}/cart/items`;
+        const url = token
+          ? `${API_BASE_URL}/cart/me/items`
+          : `${API_BASE_URL}/cart/items`;
 
         const response = await fetch(url, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token
+              ? { Authorization: `Bearer ${token}` }
+              : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -279,13 +293,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       try {
         const token = await getVerifiedAuthToken();
         const sessionId = getGuestSessionId();
-        const url = token ? `${API_BASE_URL}/cart/me/clear` : `${API_BASE_URL}/cart/clear`;
+        const url = token
+          ? `${API_BASE_URL}/cart/me/clear`
+          : `${API_BASE_URL}/cart/clear`;
 
         const response = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(token
+              ? { Authorization: `Bearer ${token}` }
+              : { "x-session-id": sessionId }),
           },
           body: JSON.stringify({
             ...(token ? {} : { sessionId }),
@@ -306,7 +324,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })();
   };
 
-  const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const cartTotal = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0,
+  );
   const cartCount = cart.reduce((count, item) => count + item.quantity, 0);
 
   const toggleFavorite = (product: Product) => {

@@ -12,6 +12,14 @@ const {
 
 const normalizeSessionId = (value = "") => String(value).trim();
 
+const extractSessionIdFromReq = (req) =>
+  normalizeSessionId(
+    req.body?.sessionId ||
+      req.query?.sessionId ||
+      req.headers["x-session-id"] ||
+      "",
+  );
+
 const normalizeItemPayload = (item = {}) => {
   const normalized = {
     productId: Number(item.id),
@@ -63,7 +71,7 @@ const getOrCreateCart = async ({ userId, sessionId }) => {
 };
 
 const getCart = asyncHandler(async (req, res) => {
-  const sessionId = normalizeSessionId(req.query.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
   const userId = req.user?._id;
   const cart = await getOrCreateCart({ userId, sessionId });
 
@@ -74,14 +82,15 @@ const getCart = asyncHandler(async (req, res) => {
 });
 
 const addCartItem = asyncHandler(async (req, res) => {
-  const sessionId = normalizeSessionId(req.body.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
   const userId = req.user?._id;
   const incomingItem = normalizeItemPayload(req.body.item);
   const cart = await getOrCreateCart({ userId, sessionId });
 
   const existingIndex = cart.items.findIndex(
     (item) =>
-      item.productId === incomingItem.productId && item.variant === incomingItem.variant
+      item.productId === incomingItem.productId &&
+      item.variant === incomingItem.variant,
   );
 
   if (existingIndex >= 0) {
@@ -104,7 +113,7 @@ const addCartItem = asyncHandler(async (req, res) => {
 });
 
 const updateCartItem = asyncHandler(async (req, res) => {
-  const sessionId = normalizeSessionId(req.body.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
   const userId = req.user?._id;
   const productId = Number(req.body.productId);
   const variant = String(req.body.variant || "").trim();
@@ -120,7 +129,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
   }
 
   const existingItem = cart.items.find(
-    (item) => item.productId === productId && item.variant === variant
+    (item) => item.productId === productId && item.variant === variant,
   );
 
   if (!existingItem) {
@@ -142,7 +151,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
 });
 
 const removeCartItem = asyncHandler(async (req, res) => {
-  const sessionId = normalizeSessionId(req.body.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
   const userId = req.user?._id;
   const productId = Number(req.body.productId);
   const variant = String(req.body.variant || "").trim();
@@ -157,7 +166,7 @@ const removeCartItem = asyncHandler(async (req, res) => {
   }
 
   cart.items = cart.items.filter(
-    (item) => !(item.productId === productId && item.variant === variant)
+    (item) => !(item.productId === productId && item.variant === variant),
   );
   await cart.save();
 
@@ -170,7 +179,7 @@ const removeCartItem = asyncHandler(async (req, res) => {
 
 const attachSessionCart = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
-  const sessionId = normalizeSessionId(req.body.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
 
   if (!sessionId) {
     throw new ApiError(400, "Session id is required");
@@ -201,7 +210,7 @@ const attachSessionCart = asyncHandler(async (req, res) => {
 });
 
 const clearCart = asyncHandler(async (req, res) => {
-  const sessionId = normalizeSessionId(req.body.sessionId);
+  const sessionId = extractSessionIdFromReq(req);
   const userId = req.user?._id;
   const cart = await getOrCreateCart({ userId, sessionId });
 
