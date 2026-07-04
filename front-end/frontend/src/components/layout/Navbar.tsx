@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Menu, X, User, Heart, ArrowRight, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -117,11 +118,16 @@ export default function Navbar() {
         >
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="text-[1.75rem] font-bold gradient-text tracking-[-0.05em] sm:text-3xl"
-            >
-              AURA
+            <Link href="/" className="flex items-center h-12">
+              <Image
+                src="/logo/KAOURA-LOGO.svg"
+                alt="Koura logo"
+                width={180}
+                height={50}
+                sizes="(max-width: 1024px) 140px, 180px"
+                priority
+                className="h-12 w-auto object-contain"
+              />
             </Link>
           </div>
 
@@ -268,12 +274,18 @@ export default function Navbar() {
               {/* Drawer Header */}
               <div className="flex items-center justify-between border-b border-black/6 pb-4">
                 <div>
-                  <Link
+                      <Link
                     href="/"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block text-2xl font-bold gradient-text tracking-[-0.05em]"
+                    className="flex items-center gap-2"
                   >
-                    AURA
+                    <Image
+                      src="/logo/koura-logo.png"
+                      alt="Koura logo"
+                      width={120}
+                      height={36}
+                      className="h-auto w-[120px] object-contain"
+                    />
                   </Link>
                   <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted">
                     Navigation
