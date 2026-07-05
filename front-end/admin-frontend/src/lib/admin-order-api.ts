@@ -9,11 +9,20 @@ export type AdminOrderItem = {
   image?: string | null;
 };
 
+export type AdminItemStatus = {
+  productId: number;
+  status: string;
+  cancelledBy?: "admin" | "user";
+  cancelReason?: string;
+  refundedAmount?: number;
+};
+
 export type AdminOrderRecord = {
   id: number;
   orderCode: string;
   status: string;
   items: AdminOrderItem[];
+  itemStatus?: AdminItemStatus[];
   shipping: {
     name: string;
     email: string;
@@ -30,6 +39,9 @@ export type AdminOrderRecord = {
   shippingFee: number;
   tax: number;
   total: number;
+  couponCode?: string;
+  discountAmount?: number;
+  discountLabel?: string;
   eta: string;
   notes?: string;
   paymentMethod?: string;

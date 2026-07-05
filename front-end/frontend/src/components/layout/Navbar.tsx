@@ -118,15 +118,14 @@ export default function Navbar() {
         >
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <Link href="/" className="flex items-center h-12">
+            <Link href="/" className="flex items-center h-14">
               <Image
                 src="/logo/KAOURA-LOGO.svg"
                 alt="Koura logo"
-                width={180}
-                height={50}
-                sizes="(max-width: 1024px) 140px, 180px"
+                width={160}
+                height={56}
                 priority
-                className="h-12 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </Link>
           </div>

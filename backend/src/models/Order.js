@@ -12,6 +12,33 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const itemStatusSchema = new mongoose.Schema(
+  {
+    productId: { type: Number, required: true },
+    status: {
+      type: String,
+      enum: ["Received", "Roasting", "Packaging", "Shipped", "Delivered", "Cancelled", "Refunded"],
+      default: "Received",
+    },
+    cancelledBy: {
+      type: String,
+      enum: ["admin", "user"],
+      default: null,
+    },
+    cancelReason: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    refundedAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
 const shippingSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
@@ -66,6 +93,10 @@ const orderSchema = new mongoose.Schema(
       type: [orderItemSchema],
       required: true,
       validate: [(items) => items.length > 0, "Orders must include at least one item"],
+    },
+    itemStatus: {
+      type: [itemStatusSchema],
+      default: [],
     },
     shipping: {
       type: shippingSchema,

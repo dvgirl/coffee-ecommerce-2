@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import { cn } from "@/lib/utils";
 import { deleteProduct, getProducts, type AdminProductRecord } from "@/lib/admin-product-api";
@@ -201,18 +202,19 @@ export default function ProductsPage() {
                     <td className="px-4 py-4 text-slate-700">{product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : "—"}</td>
                     <td className="px-4 py-4">
                       <div className="flex flex-wrap gap-2">
-                        <Link href={`/products/${product.id}`} className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 transition hover:border-emerald-900 hover:text-emerald-900">
-                          View
+                        <Link href={`/products/${product.id}`} className="inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-900 transition hover:border-emerald-900 hover:text-emerald-900" title="View">
+                          <Eye className="h-5 w-5" />
                         </Link>
-                        <Link href={`/products/${product.id}/edit`} className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 transition hover:border-emerald-900 hover:text-emerald-900">
-                          Edit
+                        <Link href={`/products/${product.id}/edit`} className="inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-900 transition hover:border-emerald-900 hover:text-emerald-900" title="Edit">
+                          <Pencil className="h-5 w-5" />
                         </Link>
                         <button
                           type="button"
                           onClick={() => void handleDelete(product.id)}
-                          className="rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100"
+                          className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 p-2 text-rose-700 transition hover:bg-rose-100"
+                          title="Delete"
                         >
-                          Delete
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     </td>

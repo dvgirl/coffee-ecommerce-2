@@ -198,6 +198,54 @@ export default function OrdersPage() {
     }
   };
 
+  // Helper function to calculate refund amount
+  const calculateRefundAmount = (order: AdminOrderRecord): { refundAmount: number; breakdown: { itemsSubtotal: number; discountProportional: number; taxProportional: number; shippingProportional: number } } => {
+    const itemStatuses = order.itemStatus || [];
+    
+    // Get cancelled/refunded items
+    const cancelledItems = itemStatuses.filter(
+      (status) => status.status === "Cancelled" || status.status === "Refunded"
+    );
+
+    if (cancelledItems.length === 0) {
+      return {
+        refundAmount: 0,
+        breakdown: { itemsSubtotal: 0, discountProportional: 0, taxProportional: 0, shippingProportional: 0 },
+      };
+    }
+
+    // Calculate cancelled items subtotal
+    let cancelledSubtotal = 0;
+    cancelledItems.forEach((status) => {
+      const item = order.items.find((i) => i.productId === status.productId);
+      if (item) {
+        cancelledSubtotal += item.price * item.quantity;
+      }
+    });
+
+    // Calculate proportional discount
+    const discountProportion = cancelledSubtotal / order.subtotal;
+    const discountProportional = order.discountAmount ? order.discountAmount * discountProportion : 0;
+
+    // Calculate proportional tax
+    const taxProportional = order.tax * discountProportion;
+
+    // Calculate proportional shipping (only if ALL items are cancelled)
+    const shippingProportional = cancelledItems.length === order.items.length ? order.shippingFee : 0;
+
+    const refundAmount = cancelledSubtotal - discountProportional + taxProportional + shippingProportional;
+
+    return {
+      refundAmount: Math.max(0, refundAmount),
+      breakdown: {
+        itemsSubtotal: cancelledSubtotal,
+        discountProportional,
+        taxProportional,
+        shippingProportional,
+      },
+    };
+  };
+
   return (
     <div className="space-y-6 pb-8">
       <AdminTopbar
@@ -250,12 +298,12 @@ export default function OrdersPage() {
         ) : null}
 
         <div className="admin-table-wrap mt-5">
-          <table className="admin-table min-w-full border-collapse text-left text-sm">
+            <table className="admin-table min-w-full border-collapse text-left text-sm">
             <thead>
               <tr>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Order</th>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Customer</th>
-                <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Amount</th>
+                <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Amount & Products</th>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Status</th>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Placed</th>
                 <th className="border-b border-slate-200 px-4 py-3 text-slate-500">Actions</th>
@@ -296,7 +344,21 @@ export default function OrdersPage() {
                           <p className="font-medium text-slate-900">{order.shipping.name}</p>
                           <p className="mt-1 text-slate-500">{order.shipping.phone}</p>
                         </td>
-                        <td className="px-4 py-4 align-top text-slate-900">${order.total.toFixed(2)}</td>
+                        <td className="px-4 py-4 align-top">
+                          <p className="text-sm font-semibold text-slate-900">${order.total.toFixed(2)}</p>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {order.items.slice(0, 2).map((item, idx) => (
+                              <span key={idx} className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                                {item.name}
+                              </span>
+                            ))}
+                            {order.items.length > 2 && (
+                              <span className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
+                                +{order.items.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-4 align-top">
                           <div className="flex flex-col gap-2">
                             <select
@@ -388,17 +450,37 @@ export default function OrdersPage() {
                                           <th className="border border-slate-200 px-3 py-2">Variant</th>
                                           <th className="border border-slate-200 px-3 py-2">Qty</th>
                                           <th className="border border-slate-200 px-3 py-2">Price</th>
+                                          <th className="border border-slate-200 px-3 py-2">Status</th>
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {order.items.map((item, index) => (
-                                          <tr key={`${item.productId}-${index}`} className="border-b border-slate-200 last:border-none">
-                                            <td className="px-3 py-2 text-slate-900">{item.name}</td>
-                                            <td className="px-3 py-2 text-center text-slate-700">{item.variant}</td>
-                                            <td className="px-3 py-2 text-center text-slate-700">{item.quantity}</td>
-                                            <td className="px-3 py-2 text-right text-slate-900">${item.price.toFixed(2)}</td>
-                                          </tr>
-                                        ))}
+                                        {order.items.map((item, index) => {
+                                          const itemStatus = (order.itemStatus || []).find((s) => s.productId === item.productId);
+                                          const status = itemStatus?.status || order.status;
+                                          const itemTotal = item.price * item.quantity;
+
+                                          return (
+                                            <tr key={`${item.productId}-${index}`} className="border-b border-slate-200 last:border-none">
+                                              <td className="px-3 py-2 text-slate-900">{item.name}</td>
+                                              <td className="px-3 py-2 text-center text-slate-700">{item.variant}</td>
+                                              <td className="px-3 py-2 text-center text-slate-700">{item.quantity}</td>
+                                              <td className="px-3 py-2 text-right text-slate-900">${itemTotal.toFixed(2)}</td>
+                                              <td className="px-3 py-2 text-center">
+                                                <span
+                                                  className={`inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase ${
+                                                    status === "Delivered"
+                                                      ? "bg-emerald-100 text-emerald-700"
+                                                      : status === "Cancelled" || status === "Refunded"
+                                                        ? "bg-rose-100 text-rose-700"
+                                                        : "bg-slate-100 text-slate-700"
+                                                  }`}
+                                                >
+                                                  {status}
+                                                </span>
+                                              </td>
+                                            </tr>
+                                          );
+                                        })}
                                       </tbody>
                                     </table>
                                   </div>
@@ -413,6 +495,12 @@ export default function OrdersPage() {
                                       <span>Subtotal</span>
                                       <span>${order.subtotal.toFixed(2)}</span>
                                     </div>
+                                    {order.discountAmount ? (
+                                      <div className="flex justify-between text-emerald-600">
+                                        <span>{order.discountLabel || order.couponCode || "Discount"}</span>
+                                        <span>-${order.discountAmount.toFixed(2)}</span>
+                                      </div>
+                                    ) : null}
                                     <div className="flex justify-between text-slate-600">
                                       <span>Shipping</span>
                                       <span>${order.shippingFee.toFixed(2)}</span>
@@ -429,6 +517,47 @@ export default function OrdersPage() {
                                     </div>
                                   </div>
                                 </div>
+
+                                {(() => {
+                                  const cancelledItems = (order.itemStatus || []).filter((s) => s.status === "Cancelled" || s.status === "Refunded");
+                                  if (cancelledItems.length > 0) {
+                                    const refundInfo = calculateRefundAmount(order);
+                                    return (
+                                      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+                                        <p className="font-medium text-rose-900">Refund calculation</p>
+                                        <div className="mt-3 grid gap-2 text-xs">
+                                          <div className="flex justify-between">
+                                            <span>Cancelled items subtotal</span>
+                                            <span>${refundInfo.breakdown.itemsSubtotal.toFixed(2)}</span>
+                                          </div>
+                                          {order.discountAmount > 0 && (
+                                            <div className="flex justify-between text-emerald-700">
+                                              <span>Coupon discount (proportional)</span>
+                                              <span>-${refundInfo.breakdown.discountProportional.toFixed(2)}</span>
+                                            </div>
+                                          )}
+                                          <div className="flex justify-between">
+                                            <span>Tax (proportional)</span>
+                                            <span>+${refundInfo.breakdown.taxProportional.toFixed(2)}</span>
+                                          </div>
+                                          {refundInfo.breakdown.shippingProportional > 0 && (
+                                            <div className="flex justify-between">
+                                              <span>Shipping (full refund)</span>
+                                              <span>+${refundInfo.breakdown.shippingProportional.toFixed(2)}</span>
+                                            </div>
+                                          )}
+                                          <div className="border-t border-rose-200 pt-2 font-semibold text-rose-900">
+                                            <div className="flex justify-between">
+                                              <span>Total refund amount</span>
+                                              <span>${refundInfo.refundAmount.toFixed(2)}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                })()}
 
                                 {reasonRequired ? (
                                   <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">

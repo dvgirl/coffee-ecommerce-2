@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { Check, X, Pencil, Eye, EyeOff, Trash2 } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import {
@@ -328,17 +329,19 @@ export default function CategoriesPage() {
                                 type="button"
                                 onClick={() => void handleSaveCategory(category.id)}
                                 disabled={isBusy}
-                                className="inline-flex items-center justify-center rounded-full bg-emerald-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+                                className="inline-flex items-center justify-center rounded-full bg-emerald-950 p-2 text-white transition hover:bg-emerald-900 disabled:cursor-not-allowed disabled:bg-slate-300"
+                                title="Save"
                               >
-                                Save
+                                <Check className="h-5 w-5" />
                               </button>
                               <button
                                 type="button"
                                 onClick={handleCancelEdit}
                                 disabled={isBusy}
-                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-foreground transition hover:border-emerald-900 hover:text-emerald-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white p-2 text-foreground transition hover:border-rose-300 hover:text-rose-700 disabled:cursor-not-allowed disabled:text-slate-400"
+                                title="Cancel"
                               >
-                                Cancel
+                                <X className="h-5 w-5" />
                               </button>
                             </>
                           ) : (
@@ -347,25 +350,32 @@ export default function CategoriesPage() {
                                 type="button"
                                 onClick={() => handleStartEdit(category)}
                                 disabled={isBusy}
-                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-foreground transition hover:border-emerald-900 hover:text-emerald-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white p-2 text-foreground transition hover:border-emerald-900 hover:text-emerald-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                title="Edit"
                               >
-                                Edit
+                                <Pencil className="h-5 w-5" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleToggleActive(category)}
                                 disabled={isBusy}
-                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-foreground transition hover:border-emerald-900 hover:text-emerald-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                className="inline-flex items-center justify-center rounded-full border border-black/10 bg-white p-2 text-foreground transition hover:border-emerald-900 hover:text-emerald-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                title={category.active ? "Deactivate" : "Activate"}
                               >
-                                {category.active ? "Deactivate" : "Activate"}
+                                {category.active ? (
+                                  <Eye className="h-5 w-5" />
+                                ) : (
+                                  <EyeOff className="h-5 w-5" />
+                                )}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteCategory(category.id)}
                                 disabled={isBusy}
-                                className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 hover:text-rose-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                className="inline-flex items-center justify-center rounded-full border border-rose-200 bg-rose-50 p-2 text-rose-700 transition hover:bg-rose-100 hover:text-rose-900 disabled:cursor-not-allowed disabled:text-slate-400"
+                                title="Delete"
                               >
-                                Delete
+                                <Trash2 className="h-5 w-5" />
                               </button>
                             </>
                           )}

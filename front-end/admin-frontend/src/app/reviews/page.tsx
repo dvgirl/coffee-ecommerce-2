@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { CheckCircle, Trash2 } from "lucide-react";
 import AdminCard from "@/components/admin/AdminCard";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import { cn } from "@/lib/utils";
@@ -206,11 +207,12 @@ export default function ReviewsPage() {
                                 disabled={loading}
                                 onClick={() => void handleApprove(review.id)}
                                 className={cn(
-                                  "rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition",
+                                  "inline-flex items-center justify-center rounded-full p-2 transition",
                                   loading ? "bg-black/5 text-muted" : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200",
                                 )}
+                                title="Approve"
                               >
-                                Approve
+                                <CheckCircle className="h-5 w-5" />
                               </button>
                             ) : null}
                             <button
@@ -218,11 +220,12 @@ export default function ReviewsPage() {
                               disabled={loading}
                               onClick={() => void handleDelete(review.id)}
                               className={cn(
-                                "rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] transition",
+                                "inline-flex items-center justify-center rounded-full p-2 transition",
                                 loading ? "bg-black/5 text-muted" : "bg-rose-100 text-rose-700 hover:bg-rose-200",
                               )}
+                              title="Delete"
                             >
-                              Delete
+                              <Trash2 className="h-5 w-5" />
                             </button>
                           </div>
                         </td>

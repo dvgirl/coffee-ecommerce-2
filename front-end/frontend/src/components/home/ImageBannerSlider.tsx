@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart, Leaf, ChevronLeft, ChevronRight, Wind } from "lucide-react";
+import { ShoppingCart, Leaf, Wind } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -125,7 +125,7 @@ const SLIDES = [
   },
 ];
 
-const SLIDE_DURATION = 5000; // 5 seconds per slide
+const SLIDE_DURATION = 3000; // 3 seconds per slide
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ImageBannerSlider() {
@@ -136,26 +136,12 @@ export default function ImageBannerSlider() {
     setCurrent((c) => (c + 1) % SLIDES.length);
   }, []);
 
-  const goPrev = useCallback(() => {
-    setCurrent((c) => (c - 1 + SLIDES.length) % SLIDES.length);
-  }, []);
-
   // Auto-scroll
   useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(goNext, SLIDE_DURATION);
     return () => clearInterval(timer);
   }, [goNext, isPaused]);
-
-  // Keyboard support
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") goNext();
-      if (e.key === "ArrowLeft") goPrev();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [goNext, goPrev]);
 
   const slide = SLIDES[current];
   const BadgeIcon = slide.badge.icon === "wind" ? Wind : Leaf;
@@ -285,7 +271,7 @@ export default function ImageBannerSlider() {
 
             {/* Heading */}
             <h1
-              className="mt-3 text-[2.55rem] font-black font-serif uppercase leading-[0.88] sm:mt-5 sm:text-[4.5rem] lg:text-[5rem] xl:text-[6rem]"
+              className="mt-3 text-[2.55rem] font-black font-serif uppercase leading-[0.88] sm:mt-5 sm:text-[4rem] lg:text-[4.5rem] xl:text-[5rem]"
               style={{ color: slide.textColor }}
             >
               {slide.heading[0]}
@@ -296,11 +282,11 @@ export default function ImageBannerSlider() {
 
             {/* Description */}
             <p
-              className="mt-4 max-w-[420px] text-[0.9rem] leading-[1.75] sm:mt-6 sm:text-[1.05rem] sm:leading-9"
-              style={{ color: slide.mutedColor }}
-            >
-              {slide.description}
-            </p>
+  className="mt-4 max-w-[420px] text-[1rem] leading-[1.75] sm:mt-6 sm:text-[1.25rem] sm:leading-9"
+  style={{ color: slide.mutedColor }}
+>
+  {slide.description}
+</p>
 
             {/* CTAs */}
             <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row sm:items-center md:flex-row xl:mt-10">
@@ -367,61 +353,6 @@ export default function ImageBannerSlider() {
         </AnimatePresence>
       </div>
 
-      {/* ── Navigation Controls ── */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-5">
-        {/* Prev */}
-        <button
-          onClick={goPrev}
-          className="p-2 rounded-full bg-white/60 backdrop-blur-sm border border-black/10 hover:bg-white/90 transition-all shadow-sm hover:shadow-md active:scale-95"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-4 h-4 text-foreground" />
-        </button>
-
-        {/* Dots */}
-        <div className="flex items-center gap-2">
-          {SLIDES.map((s, i) => (
-            <button
-              key={s.id}
-              onClick={() => setCurrent(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              className="relative h-2 rounded-full transition-all duration-400 overflow-hidden"
-              style={{
-                width: i === current ? "28px" : "8px",
-                background: i === current ? slide.accentColor : `${slide.accentColor}40`,
-              }}
-            >
-              {/* Progress line inside active dot */}
-              {i === current && !isPaused && (
-                <motion.span
-                  key={`progress-${current}`}
-                  className="absolute inset-y-0 left-0 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.55)" }}
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: SLIDE_DURATION / 1000, ease: "linear" }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-
-        {/* Next */}
-        <button
-          onClick={goNext}
-          className="p-2 rounded-full bg-white/60 backdrop-blur-sm border border-black/10 hover:bg-white/90 transition-all shadow-sm hover:shadow-md active:scale-95"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-4 h-4 text-foreground" />
-        </button>
-      </div>
-
-      {/* ── Slide counter (top-right) ── */}
-      <div className="absolute top-6 right-6 z-30 hidden md:flex items-center gap-1.5 rounded-full bg-white/50 backdrop-blur-sm border border-black/10 px-3 py-1 shadow-sm">
-        <span className="text-xs font-black text-foreground">{current + 1}</span>
-        <span className="text-xs text-muted">/</span>
-        <span className="text-xs text-muted">{SLIDES.length}</span>
-      </div>
     </section>
   );
 }

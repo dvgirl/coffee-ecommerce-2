@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const asyncHandler = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
-const { generateOtp, getOtpExpiryDate } = require("../services/otpService");
+const { generateOtp, generateAdminOtp, getOtpExpiryDate } = require("../services/otpService");
 const { generateToken } = require("../services/tokenService");
 const {
   normalizePhoneNumber,
@@ -170,7 +170,7 @@ const requestAdminOtp = asyncHandler(async (req, res) => {
     throw new ApiError(403, "This phone number is not allowed to access admin");
   }
 
-  const otpCode = generateOtp();
+  const otpCode = generateAdminOtp();
   const otpExpiresAt = getOtpExpiryDate();
 
   let user = await User.findOne({ phoneNumber: normalizedPhone });
