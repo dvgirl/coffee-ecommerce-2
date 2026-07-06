@@ -14,9 +14,9 @@ const PERIODS: { key: AdminSalesOverviewPeriod; label: string; helper: string }[
 
 const formatMoneyCompact = (value: number) => {
   const amount = Number(value) || 0;
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`;
-  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(1)}k`;
-  return `$${amount.toFixed(0)}`;
+  if (amount >= 1_000_000) return `₹${(amount / 1_000_000).toFixed(1)}M`;
+  if (amount >= 1_000) return `₹${(amount / 1_000).toFixed(1)}k`;
+  return `₹${amount.toFixed(0)}`;
 };
 
 export default function SalesOverviewCard() {
@@ -67,7 +67,7 @@ export default function SalesOverviewCard() {
             <div className="rounded-[1.3rem] border border-black/6 bg-background p-4">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Revenue</p>
               <p className="mt-2 text-2xl font-bold tracking-[-0.03em] text-foreground">
-                {data ? formatMoneyCompact(data.totals.revenue) : loading ? "…" : "$0"}
+                {data ? formatMoneyCompact(data.totals.revenue) : loading ? "…" : "₹0"}
               </p>
             </div>
             <div className="rounded-[1.3rem] border border-black/6 bg-background p-4">
@@ -132,7 +132,7 @@ export default function SalesOverviewCard() {
                     <div
                       className="w-full rounded-[0.9rem] bg-[linear-gradient(180deg,_#d4a271_0%,_#8b5a2b_100%)] shadow-[0_12px_24px_rgba(139,90,43,0.25)]"
                       style={{ height: `${height}px` }}
-                      title={`${point.label}: $${point.revenue.toFixed(2)} • ${point.orders} orders • ${point.sales} items`}
+                      title={`${point.label}: ₹${point.revenue.toFixed(2)} • ${point.orders} orders • ${point.sales} items`}
                     />
                   </div>
                   <div className="text-center">

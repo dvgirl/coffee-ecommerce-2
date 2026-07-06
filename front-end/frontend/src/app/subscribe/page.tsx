@@ -209,7 +209,7 @@ export default function SubscribePage() {
                        </p>
                      </div>
                      <div className="flex items-center justify-between mt-auto">
-                        <span className="font-black text-xl text-primary">$45<span className="text-xs uppercase tracking-widest font-bold ml-1 text-muted">/ Mo</span></span>
+                        <span className="font-black text-xl text-primary">₹45<span className="text-xs uppercase tracking-widest font-bold ml-1 text-muted">/ Mo</span></span>
                         {planType === "curated" ? <CheckCircle2 className="w-8 h-8 text-primary" /> : <div className="w-8 h-8 rounded-full border-2 border-black/5 group-hover:border-primary/20 transition-colors" />}
                      </div>
                    </button>
@@ -406,7 +406,7 @@ export default function SubscribePage() {
                <div className="text-right">
                   <p className="text-muted tracking-[0.2em] uppercase text-[9px] font-black mb-1.5 opacity-60">Investment Total</p>
                   <p className="text-3xl md:text-4xl font-black text-primary">
-                    ${monthlyTotal.toFixed(2)}<span className="text-sm font-bold text-muted ml-1 uppercase tracking-widest">/ Mo</span>
+                    ₹{monthlyTotal.toFixed(2)}<span className="text-sm font-bold text-muted ml-1 uppercase tracking-widest">/ Mo</span>
                   </p>
                </div>
                <button 

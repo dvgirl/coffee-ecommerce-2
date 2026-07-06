@@ -223,15 +223,15 @@ export default function ProductDetailClient({
               {displayRating.toFixed(1)} rating
             </div>
             <div className="text-3xl font-bold text-primary">
-              ${displayPrice.toFixed(2)}
+              ₹{displayPrice.toFixed(2)}
             </div>
             {selectedVariant.discountPrice && selectedVariant.discountPrice > 0 ? (
               <div className="text-sm font-semibold text-muted line-through">
-                ${selectedVariant.price.toFixed(2)}
+                ₹{selectedVariant.price.toFixed(2)}
               </div>
             ) : product.originalPrice ? (
               <div className="text-sm font-semibold text-muted line-through">
-                ${product.originalPrice.toFixed(2)}
+                ₹{product.originalPrice.toFixed(2)}
               </div>
             ) : null}
           </div>
@@ -305,7 +305,7 @@ export default function ProductDetailClient({
             >
               <ShoppingBag className="h-5 w-5" />
               {variantInStock
-                ? `Add to cart • $${(displayPrice * quantity).toFixed(2)}`
+                ? `Add to cart • ₹${(displayPrice * quantity).toFixed(2)}`
                 : "Out of stock"}
             </button>
           </div>

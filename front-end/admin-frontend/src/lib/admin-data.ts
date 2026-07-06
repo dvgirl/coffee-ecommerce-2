@@ -62,9 +62,9 @@ export const getSalesOverviewData = getSalesOverview;
 export const getRecentActivitiesData = getRecentActivities;
 
 export const customerSegments = [
-  { name: "Club members", size: "482", spend: "$124 avg", loyalty: "High", note: "Most responsive to monthly curation drops." },
-  { name: "Gift buyers", size: "214", spend: "$89 avg", loyalty: "Medium", note: "Peak during launches and festive bundles." },
-  { name: "Wholesale partners", size: "36", spend: "$1.8k avg", loyalty: "High", note: "Stable reorder cadence every 12-16 days." },
+  { name: "Club members", size: "482", spend: "₹124 avg", loyalty: "High", note: "Most responsive to monthly curation drops." },
+  { name: "Gift buyers", size: "214", spend: "₹89 avg", loyalty: "Medium", note: "Peak during launches and festive bundles." },
+  { name: "Wholesale partners", size: "36", spend: "₹1.8k avg", loyalty: "High", note: "Stable reorder cadence every 12-16 days." },
 ];
 
 export const teamTasks = [

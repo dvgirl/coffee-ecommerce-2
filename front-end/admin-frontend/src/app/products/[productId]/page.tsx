@@ -133,11 +133,11 @@ export default async function ProductDetailPage({ params }: ProductDetailProps) 
               <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm text-slate-700">
                 <div className="rounded-3xl bg-white p-4 shadow-sm">
                   <p className="text-slate-500">Base price</p>
-                  <p className="mt-2 font-semibold text-slate-900">${product.basePrice.toFixed(2)}</p>
+                  <p className="mt-2 font-semibold text-slate-900">₹{product.basePrice.toFixed(2)}</p>
                 </div>
                 <div className="rounded-3xl bg-white p-4 shadow-sm">
                   <p className="text-slate-500">Original price</p>
-                  <p className="mt-2 font-semibold text-slate-900">{product.originalPrice ? `$${product.originalPrice.toFixed(2)}` : "None"}</p>
+                  <p className="mt-2 font-semibold text-slate-900">{product.originalPrice ? `₹${product.originalPrice.toFixed(2)}` : "None"}</p>
                 </div>
                 <div className="rounded-3xl bg-white p-4 shadow-sm">
                   <p className="text-slate-500">Stock status</p>

@@ -151,7 +151,7 @@ export default async function Home() {
                   <div className="p-6">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-xl font-bold group-hover:text-primary transition-colors text-foreground">{product.name}</h3>
-                      <span className="font-bold text-lg text-primary">${product.basePrice.toFixed(2)}</span>
+                      <span className="font-bold text-lg text-primary">₹{product.basePrice.toFixed(2)}</span>
                     </div>
                     <p className="text-sm text-muted mb-4 line-clamp-2">{product.notes}</p>
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-black/5">

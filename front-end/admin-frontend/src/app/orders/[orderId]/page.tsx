@@ -114,8 +114,8 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
                   <td className="px-3 py-2 text-slate-900">{item.name}</td>
                   <td className="px-3 py-2 text-slate-700">{item.variant}</td>
                   <td className="px-3 py-2 text-center text-slate-700">{item.quantity}</td>
-                  <td className="px-3 py-2 text-right text-slate-700">${item.price.toFixed(2)}</td>
-                  <td className="px-3 py-2 text-right text-slate-900">${(item.price * item.quantity).toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right text-slate-700">₹{item.price.toFixed(2)}</td>
+                  <td className="px-3 py-2 text-right text-slate-900">₹{(item.price * item.quantity).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
@@ -127,19 +127,19 @@ export default async function OrderDetailPage({ params }: { params: Promise<{ or
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p className="font-medium text-slate-900">Subtotal</p>
-            <p className="mt-2">${order.subtotal.toFixed(2)}</p>
+            <p className="mt-2">₹{order.subtotal.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p className="font-medium text-slate-900">Shipping</p>
-            <p className="mt-2">${order.shippingFee.toFixed(2)}</p>
+            <p className="mt-2">₹{order.shippingFee.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p className="font-medium text-slate-900">Tax</p>
-            <p className="mt-2">${order.tax.toFixed(2)}</p>
+            <p className="mt-2">₹{order.tax.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
             <p className="font-medium text-slate-900">Total</p>
-            <p className="mt-2 text-lg font-semibold text-slate-900">${order.total.toFixed(2)}</p>
+            <p className="mt-2 text-lg font-semibold text-slate-900">₹{order.total.toFixed(2)}</p>
           </div>
         </div>
       </section>

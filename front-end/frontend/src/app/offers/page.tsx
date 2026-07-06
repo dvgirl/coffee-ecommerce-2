@@ -113,7 +113,7 @@ export default function OffersPage() {
               </div>
               <div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-1">Welcome Ritual</h3>
-                <p className="text-muted text-sm">Save $10 on your first purchase above $50. Use code: <span className="font-bold text-primary">AURA10</span></p>
+                <p className="text-muted text-sm">Save ₹10 on your first purchase above ₹50. Use code: <span className="font-bold text-primary">AURA10</span></p>
               </div>
            </motion.div>
 
@@ -177,8 +177,8 @@ export default function OffersPage() {
                 <div className="p-6">
                    <h4 className="font-bold font-serif text-lg mb-1">{p.name}</h4>
                    <div className="flex items-center gap-2 mb-4">
-                      <span className="text-primary font-bold text-xl">${(p.basePrice * 0.85).toFixed(2)}</span>
-                      <span className="text-muted text-sm line-through">${p.basePrice.toFixed(2)}</span>
+                      <span className="text-primary font-bold text-xl">₹{(p.basePrice * 0.85).toFixed(2)}</span>
+                      <span className="text-muted text-sm line-through">₹{p.basePrice.toFixed(2)}</span>
                    </div>
                    <button className="w-full bg-black/5 hover:bg-primary text-foreground hover:text-white py-3 rounded-xl font-bold transition-all text-sm border border-black/5 hover:border-transparent">
                      Quick Add

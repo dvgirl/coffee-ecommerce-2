@@ -123,7 +123,7 @@ export default function CartPage() {
                   <h3 className="text-xl font-bold font-serif text-foreground">{item.name}</h3>
                   <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-bold uppercase tracking-wider border border-primary/20">{item.variant}</span>
                 </div>
-                <p className="text-primary font-bold">${item.price.toFixed(2)}</p>
+                <p className="text-primary font-bold">₹{item.price.toFixed(2)}</p>
               </div>
 
               <div className="flex items-center gap-4">
@@ -180,7 +180,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex flex-col items-center sm:items-end gap-3 shrink-0">
-                    <span className="font-bold text-2xl text-foreground">${upsellProduct.basePrice.toFixed(2)}</span>
+                    <span className="font-bold text-2xl text-foreground">₹{upsellProduct.basePrice.toFixed(2)}</span>
                     <button 
                       onClick={handleAddUpsell}
                       className="bg-primary text-white hover:bg-foreground transition-all duration-300 font-bold px-8 py-3 rounded-xl shadow-[0_15px_30px_rgba(198,156,109,0.3)] flex items-center gap-2 group/btn"
@@ -205,22 +205,22 @@ export default function CartPage() {
             <div className="space-y-4 mb-8 text-sm font-medium">
               <div className="flex justify-between">
                 <span className="text-muted">Subtotal</span>
-                <span className="text-foreground">${cartTotal.toFixed(2)}</span>
+                <span className="text-foreground">₹{cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted">Shipping</span>
-                <span className="text-foreground">{cartTotal > 50 ? "Free" : "$5.00"}</span>
+                <span className="text-foreground">{cartTotal > 50 ? "Free" : "₹5.00"}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted">Estimated Tax</span>
-                <span className="text-foreground">${(cartTotal * 0.08).toFixed(2)}</span>
+                <span className="text-foreground">₹{(cartTotal * 0.08).toFixed(2)}</span>
               </div>
             </div>
 
             <div className="flex justify-between items-center mb-10 pt-6 border-t border-black/5">
               <span className="font-bold text-xl text-foreground">Total</span>
               <span className="font-bold text-3xl text-primary">
-                ${(cartTotal + (cartTotal > 50 ? 0 : 5) + cartTotal * 0.08).toFixed(2)}
+                ₹{(cartTotal + (cartTotal > 50 ? 0 : 5) + cartTotal * 0.08).toFixed(2)}
               </span>
             </div>
 
@@ -239,4 +239,3 @@ export default function CartPage() {
     </div>
   );
 }
-

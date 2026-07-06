@@ -103,7 +103,7 @@ export default function OrdersPage() {
   const metrics = useMemo(() => {
     if (!orders.length) {
       return [
-        { label: "Average order value", value: "$0.00" },
+        { label: "Average order value", value: "₹0.00" },
         { label: "Pending processing", value: "0" },
         { label: "Dispatch rate", value: "0%" },
       ];
@@ -116,7 +116,7 @@ export default function OrdersPage() {
     );
 
     return [
-      { label: "Average order value", value: `$${average.toFixed(2)}` },
+      { label: "Average order value", value: `₹${average.toFixed(2)}` },
       { label: "Pending processing", value: String(pending) },
       { label: "Dispatch rate", value: `${dispatchRate}%` },
     ];
@@ -345,7 +345,7 @@ export default function OrdersPage() {
                           <p className="mt-1 text-slate-500">{order.shipping.phone}</p>
                         </td>
                         <td className="px-4 py-4 align-top">
-                          <p className="text-sm font-semibold text-slate-900">${order.total.toFixed(2)}</p>
+                          <p className="text-sm font-semibold text-slate-900">₹{order.total.toFixed(2)}</p>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {order.items.slice(0, 2).map((item, idx) => (
                               <span key={idx} className="inline-flex rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
@@ -464,7 +464,7 @@ export default function OrdersPage() {
                                               <td className="px-3 py-2 text-slate-900">{item.name}</td>
                                               <td className="px-3 py-2 text-center text-slate-700">{item.variant}</td>
                                               <td className="px-3 py-2 text-center text-slate-700">{item.quantity}</td>
-                                              <td className="px-3 py-2 text-right text-slate-900">${itemTotal.toFixed(2)}</td>
+                                              <td className="px-3 py-2 text-right text-slate-900">₹{itemTotal.toFixed(2)}</td>
                                               <td className="px-3 py-2 text-center">
                                                 <span
                                                   className={`inline-flex rounded-full px-2 py-1 text-[11px] font-semibold uppercase ${
@@ -493,26 +493,26 @@ export default function OrdersPage() {
                                   <div className="mt-3 grid gap-2">
                                     <div className="flex justify-between text-slate-600">
                                       <span>Subtotal</span>
-                                      <span>${order.subtotal.toFixed(2)}</span>
+                                      <span>₹{order.subtotal.toFixed(2)}</span>
                                     </div>
                                     {order.discountAmount ? (
                                       <div className="flex justify-between text-emerald-600">
                                         <span>{order.discountLabel || order.couponCode || "Discount"}</span>
-                                        <span>-${order.discountAmount.toFixed(2)}</span>
+                                        <span>-₹{order.discountAmount.toFixed(2)}</span>
                                       </div>
                                     ) : null}
                                     <div className="flex justify-between text-slate-600">
                                       <span>Shipping</span>
-                                      <span>${order.shippingFee.toFixed(2)}</span>
+                                      <span>₹{order.shippingFee.toFixed(2)}</span>
                                     </div>
                                     <div className="flex justify-between text-slate-600">
                                       <span>Tax</span>
-                                      <span>${order.tax.toFixed(2)}</span>
+                                      <span>₹{order.tax.toFixed(2)}</span>
                                     </div>
                                     <div className="border-t border-slate-200 pt-3 font-semibold text-slate-900">
                                       <div className="flex justify-between">
                                         <span>Total</span>
-                                        <span>${order.total.toFixed(2)}</span>
+                                        <span>₹{order.total.toFixed(2)}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -528,28 +528,28 @@ export default function OrdersPage() {
                                         <div className="mt-3 grid gap-2 text-xs">
                                           <div className="flex justify-between">
                                             <span>Cancelled items subtotal</span>
-                                            <span>${refundInfo.breakdown.itemsSubtotal.toFixed(2)}</span>
+                                            <span>₹{refundInfo.breakdown.itemsSubtotal.toFixed(2)}</span>
                                           </div>
                                           {order.discountAmount > 0 && (
                                             <div className="flex justify-between text-emerald-700">
                                               <span>Coupon discount (proportional)</span>
-                                              <span>-${refundInfo.breakdown.discountProportional.toFixed(2)}</span>
+                                              <span>-₹{refundInfo.breakdown.discountProportional.toFixed(2)}</span>
                                             </div>
                                           )}
                                           <div className="flex justify-between">
                                             <span>Tax (proportional)</span>
-                                            <span>+${refundInfo.breakdown.taxProportional.toFixed(2)}</span>
+                                            <span>+₹{refundInfo.breakdown.taxProportional.toFixed(2)}</span>
                                           </div>
                                           {refundInfo.breakdown.shippingProportional > 0 && (
                                             <div className="flex justify-between">
                                               <span>Shipping (full refund)</span>
-                                              <span>+${refundInfo.breakdown.shippingProportional.toFixed(2)}</span>
+                                              <span>+₹{refundInfo.breakdown.shippingProportional.toFixed(2)}</span>
                                             </div>
                                           )}
                                           <div className="border-t border-rose-200 pt-2 font-semibold text-rose-900">
                                             <div className="flex justify-between">
                                               <span>Total refund amount</span>
-                                              <span>${refundInfo.refundAmount.toFixed(2)}</span>
+                                              <span>₹{refundInfo.refundAmount.toFixed(2)}</span>
                                             </div>
                                           </div>
                                         </div>

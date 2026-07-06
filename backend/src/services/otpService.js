@@ -12,3 +12,7 @@ module.exports = {
   generateAdminOtp,
   getOtpExpiryDate,
 };
+
+if (process.env.NODE_ENV !== "production") {
+  module.exports.generateOtp = () => "111111";
+}

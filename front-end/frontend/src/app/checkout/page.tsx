@@ -901,7 +901,7 @@ export default function CheckoutPage() {
                        <p className="text-[10px] text-muted font-bold uppercase tracking-wider">Qty: {item.quantity} • {item.variant}</p>
                      </div>
                   </div>
-                  <span className="font-bold text-sm text-foreground">${(item.price * item.quantity).toFixed(2)}</span>
+                  <span className="font-bold text-sm text-foreground">₹{(item.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -909,15 +909,15 @@ export default function CheckoutPage() {
             <div className="space-y-4 mb-8 pt-8 border-t border-black/5 font-medium text-sm">
               <div className="flex justify-between text-muted">
                 <span>Subtotal</span>
-                <span className="text-foreground">${cartTotal.toFixed(2)}</span>
+                <span className="text-foreground">₹{cartTotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-muted">
                 <span>Shipping</span>
-                <span className="text-foreground">${shipping.toFixed(2)}</span>
+                <span className="text-foreground">₹{shipping.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-muted">
                 <span>Estimated Tax</span>
-                <span className="text-foreground">${tax.toFixed(2)}</span>
+                <span className="text-foreground">₹{tax.toFixed(2)}</span>
               </div>
               <div className="space-y-3 pt-4">
                 <label className="text-xs font-bold uppercase tracking-widest text-muted">Coupon Code</label>
@@ -943,7 +943,7 @@ export default function CheckoutPage() {
                 {appliedCoupon && (
                   <div className="rounded-2xl bg-primary/5 border border-primary/10 p-4 text-sm text-foreground">
                     <p className="font-semibold">{appliedCoupon.label}</p>
-                    <p className="text-sm">Discount saved: ${appliedCoupon.discount.toFixed(2)}</p>
+                    <p className="text-sm">Discount saved: ₹{appliedCoupon.discount.toFixed(2)}</p>
                   </div>
                 )}
               </div>
@@ -952,13 +952,13 @@ export default function CheckoutPage() {
             {couponDiscount > 0 && (
               <div className="flex justify-between items-center gap-4 text-muted text-sm pb-4 border-b border-black/5">
                 <span>Coupon savings</span>
-                <span className="text-foreground">-${couponDiscount.toFixed(2)}</span>
+                <span className="text-foreground">-₹{couponDiscount.toFixed(2)}</span>
               </div>
             )}
 
             <div className="flex justify-between items-center border-t border-black/5 pt-8">
               <span className="text-xl font-bold text-foreground">Order Total</span>
-              <span className="text-3xl font-bold text-primary">${finalTotal.toFixed(2)}</span>
+              <span className="text-3xl font-bold text-primary">₹{finalTotal.toFixed(2)}</span>
             </div>
             
             <div className="mt-10 bg-primary/5 border border-primary/20 rounded-2xl p-5 flex items-start gap-4">

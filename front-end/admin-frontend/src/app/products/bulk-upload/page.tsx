@@ -262,7 +262,7 @@ export default function BulkUploadProductsPage() {
                           <td className="px-4 py-3 text-slate-900">{row.preview?.name || "—"}</td>
                           <td className="px-4 py-3 text-slate-700">
                             {row.preview?.basePrice !== null && row.preview?.basePrice !== undefined
-                              ? `$${Number(row.preview.basePrice).toFixed(2)}`
+                              ? `₹${Number(row.preview.basePrice).toFixed(2)}`
                               : "—"}
                           </td>
                         </tr>
@@ -287,4 +287,3 @@ export default function BulkUploadProductsPage() {
     </div>
   );
 }
-

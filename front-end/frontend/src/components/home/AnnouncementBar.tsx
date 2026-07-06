@@ -5,11 +5,11 @@ import { Coffee, Star, Zap } from "lucide-react";
 
 const ANNOUNCEMENTS = [
   { text: "GET 5% OFF ON PREPAID ORDERS", icon: Zap },
-  { text: "FREE SHIPPING ON ORDERS ABOVE $50", icon: Coffee },
+  { text: "FREE SHIPPING ON ORDERS ABOVE ₹50", icon: Coffee },
   { text: "NEW ARRIVALS JUST DROPPED: HIMALAYAN OOLONG", icon: Star },
   // Duplicate for seamless infinite loop
   { text: "GET 5% OFF ON PREPAID ORDERS", icon: Zap },
-  { text: "FREE SHIPPING ON ORDERS ABOVE $50", icon: Coffee },
+  { text: "FREE SHIPPING ON ORDERS ABOVE ₹50", icon: Coffee },
   { text: "NEW ARRIVALS JUST DROPPED: HIMALAYAN OOLONG", icon: Star },
 ];
 

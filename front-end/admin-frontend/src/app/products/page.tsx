@@ -196,7 +196,7 @@ export default function ProductsPage() {
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">#{product.id}</p>
                     </td>
                     <td className="px-4 py-4 text-slate-700">{product.category}</td>
-                    <td className="px-4 py-4 text-slate-700">${product.basePrice.toFixed(2)}</td>
+                    <td className="px-4 py-4 text-slate-700">₹{product.basePrice.toFixed(2)}</td>
                     <td className="px-4 py-4 text-slate-700">{product.inStock ? "In stock" : "Out"}</td>
                     <td className="px-4 py-4 text-slate-700">{product.featured ? "Yes" : "No"}</td>
                     <td className="px-4 py-4 text-slate-700">{product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : "—"}</td>

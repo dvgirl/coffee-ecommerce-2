@@ -7,7 +7,7 @@ const NON_REVENUE_STATUSES = ["Cancelled", "Refunded"];
 
 const formatCurrency = (amount) => {
   const value = Number(amount) || 0;
-  return `$${value.toFixed(2)}`;
+  return `₹${value.toFixed(2)}`;
 };
 
 const formatRelativeTime = (date) => {
@@ -87,7 +87,7 @@ const getOverviewStats = asyncHandler(async (req, res) => {
   const stats = [
     {
       title: "Gross revenue",
-      value: `$${currentRevenue.toLocaleString()}`,
+      value: `₹${currentRevenue.toLocaleString()}`,
       delta: `${revenueDelta >= 0 ? '+' : ''}${revenueDelta.toFixed(1)}%`,
       tone: revenueDelta >= 0 ? "positive" : "negative",
       detail: "vs last month"
@@ -158,10 +158,10 @@ const getChannelPerformance = asyncHandler(async (req, res) => {
   // This is a simplified version - in a real app you'd track order sources
   // For now, we'll return placeholder data that matches the frontend expectations
   const channels = [
-    { name: "Direct", share: 42, revenue: "$35.4k", trend: "+12%" },
-    { name: "Instagram", share: 23, revenue: "$19.1k", trend: "+18%" },
-    { name: "Email", share: 19, revenue: "$16.0k", trend: "+9%" },
-    { name: "Wholesale", share: 16, revenue: "$13.8k", trend: "+6%" },
+    { name: "Direct", share: 42, revenue: "₹35.4k", trend: "+12%" },
+    { name: "Instagram", share: 23, revenue: "₹19.1k", trend: "+18%" },
+    { name: "Email", share: 19, revenue: "₹16.0k", trend: "+9%" },
+    { name: "Wholesale", share: 16, revenue: "₹13.8k", trend: "+6%" },
   ];
 
   res.status(200).json({
@@ -183,7 +183,7 @@ const getFulfillmentQueue = asyncHandler(async (req, res) => {
     code: order.orderCode,
     customer: order.shipping?.name || 'Unknown',
     items: order.items.map(item => `${item.name} x${item.quantity}`).join(', '),
-    total: `$${order.total.toFixed(2)}`,
+    total: `₹${order.total.toFixed(2)}`,
     status: order.status.charAt(0).toUpperCase() + order.status.slice(1),
     eta: getETA(order.status, order.createdAt)
   }));

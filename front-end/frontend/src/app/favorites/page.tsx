@@ -69,7 +69,7 @@ export default function FavoritesPage() {
             <div className="p-6 flex flex-col flex-grow">
               <div className="flex justify-between items-start mb-2 gap-2">
                 <h3 className="text-xl font-serif font-bold group-hover:text-primary transition-colors text-foreground">{product.name}</h3>
-                <span className="font-bold text-lg text-primary shrink-0">${product.basePrice.toFixed(2)}</span>
+                <span className="font-bold text-lg text-primary shrink-0">₹{product.basePrice.toFixed(2)}</span>
               </div>
               <p className="text-sm text-muted flex-grow mb-6 leading-relaxed line-clamp-2">{product.notes}</p>
               

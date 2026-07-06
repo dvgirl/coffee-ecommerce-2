@@ -18,8 +18,8 @@ import {
 import { getOrders, type OrderRecord } from "@/lib/order-api";
 
 const ORDERS = [
-  { id: "AURA-2024-089", date: "Today, 09:42 AM", status: "Roasting", total: "$56.00", items: "Midnight Onyx, Colombian Supremo", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 1 },
-  { id: "AURA-2024-042", date: "Sep 12, 2024", status: "Delivered", total: "$28.00", items: "Ethiopian Yirgacheffe", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 4 },
+  { id: "AURA-2024-089", date: "Today, 09:42 AM", status: "Roasting", total: "₹56.00", items: "Midnight Onyx, Colombian Supremo", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 1 },
+  { id: "AURA-2024-042", date: "Sep 12, 2024", status: "Delivered", total: "₹28.00", items: "Ethiopian Yirgacheffe", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 4 },
 ] as unknown as OrderRecord[];
 
 const COUPONS = [
@@ -62,8 +62,8 @@ const normalizeOrderEntry = (order: any): NormalizedOrderEntry => {
       ? new Date(order.createdAt).toLocaleString()
       : "Unknown date";
   const total = typeof order.total === "number"
-    ? `$${order.total.toFixed(2)}`
-    : order.total || "$0.00";
+    ? `₹${order.total.toFixed(2)}`
+    : order.total || "₹0.00";
   const currentStep = typeof order.currentStep === "number"
     ? order.currentStep
     : STATUS_STEP_MAP[status] ?? 0;

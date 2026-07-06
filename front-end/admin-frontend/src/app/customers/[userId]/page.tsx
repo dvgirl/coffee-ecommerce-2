@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const formatMoney = (value: number) => {
   const amount = Number(value) || 0;
-  return `$${amount.toFixed(2)}`;
+  return `₹${amount.toFixed(2)}`;
 };
 
 export default function CustomerOrderHistoryPage() {
@@ -208,4 +208,3 @@ export default function CustomerOrderHistoryPage() {
     </div>
   );
 }
-

@@ -477,11 +477,11 @@ export default function ShopClient() {
                         <div className="mt-5 flex items-center justify-between">
                           <div>
                             <p className="text-2xl font-bold text-primary">
-                              ${displayPrice.toFixed(2)}
+                              ₹{displayPrice.toFixed(2)}
                             </p>
                             {product.originalPrice ? (
                               <p className="text-sm text-muted line-through">
-                                ${product.originalPrice.toFixed(2)}
+                                ₹{product.originalPrice.toFixed(2)}
                               </p>
                             ) : null}
                           </div>
