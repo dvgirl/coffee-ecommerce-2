@@ -1,21 +1,19 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
-import { User, Package, Ticket, Settings, LogOut, Clock, MapPin, CreditCard, Award, CheckCircle2, Leaf, Coffee } from "lucide-react";
+import { User, Package, Ticket, Settings, LogOut, Clock, MapPin, CreditCard, Award, Leaf, Coffee } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { clearSession, getStoredSession, type AuthUser } from "@/lib/auth";
 import {
   getCurrentUser,
-  getUserAddresses,
   addUserAddress,
   updateUserAddress,
   deleteUserAddress,
   type AddressRecord,
-  type CurrentUser,
 } from "@/lib/user-api";
-import { getOrders, type OrderRecord } from "@/lib/order-api";
+import { getOrders, type OrderItem, type OrderRecord } from "@/lib/order-api";
 
 const ORDERS = [
   { id: "AURA-2024-089", date: "Today, 09:42 AM", status: "Roasting", total: "₹56.00", items: "Midnight Onyx, Colombian Supremo", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 1 },
@@ -30,32 +28,39 @@ const COUPONS = [
 // User's aggregated taste profile stats
 const USER_STATS = { acidity: 4, body: 2, sweetness: 5, complexity: 4, finish: 3 };
 
-const STATUS_STEP_MAP: Record<string, number> = {
-  Received: 0,
-  Roasting: 1,
-  Packaging: 2,
-  Shipped: 3,
-  Delivered: 4,
-  Cancelled: 4,
-};
-
 type NormalizedOrderEntry = {
   id: string;
   status: string;
   date: string;
   total: string;
-  items: string;
-  steps: string[];
-  currentStep: number;
+  items: Array<{
+    name: string;
+    variant: string;
+    quantity: number;
+    price: number;
+    image?: string | null;
+  }>;
+  productCount: number;
+  unitCount: number;
 };
 
-const normalizeOrderEntry = (order: any): NormalizedOrderEntry => {
-  const status = order.status ?? "Received";
-  const itemsText = typeof order.items === "string"
-    ? order.items
-    : Array.isArray(order.items)
-      ? order.items.map((item: any) => item.name).join(", ")
-      : "";
+type OrderEntrySource = Partial<OrderRecord> & {
+  items?: Array<Partial<OrderItem>>;
+  createdAt?: string;
+  date?: string;
+  orderCode?: string | number;
+};
+
+const normalizeOrderEntry = (order: OrderEntrySource): NormalizedOrderEntry => {
+  const items = Array.isArray(order.items)
+    ? order.items.map((item) => ({
+        name: item.name ?? "Product",
+        variant: item.variant ?? "Standard",
+        quantity: typeof item.quantity === "number" ? item.quantity : 1,
+        price: typeof item.price === "number" ? item.price : 0,
+        image: item.image ?? null,
+      }))
+    : [];
   const date = typeof order.date === "string"
     ? order.date
     : order.createdAt
@@ -64,20 +69,14 @@ const normalizeOrderEntry = (order: any): NormalizedOrderEntry => {
   const total = typeof order.total === "number"
     ? `₹${order.total.toFixed(2)}`
     : order.total || "₹0.00";
-  const currentStep = typeof order.currentStep === "number"
-    ? order.currentStep
-    : STATUS_STEP_MAP[status] ?? 0;
-
   return {
-    id: order.orderCode ?? order.id,
-    status,
+    id: String(order.orderCode ?? order.id ?? "order"),
+    status: order.status ?? "Received",
     date,
     total,
-    items: itemsText,
-    steps: Array.isArray(order.steps)
-      ? order.steps.map((step: unknown) => String(step))
-      : ["Received", "Roasting", "Packaging", "Shipped", "Delivered"],
-    currentStep,
+    items,
+    productCount: items.length,
+    unitCount: items.reduce((count, item) => count + item.quantity, 0),
   };
 };
 
@@ -128,67 +127,93 @@ const UserTasteRadar = () => {
   );
 };
 
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(value);
+
 const OrderTimeline = ({ order }: { order: ReturnType<typeof normalizeOrderEntry> }) => {
-  const progressWidth = order.steps.length > 1 ? (order.currentStep / (order.steps.length - 1)) * 100 : 0;
+  const [expanded, setExpanded] = useState(false);
+  const visibleItems = expanded ? order.items : order.items.slice(0, 3);
+  const hiddenCount = Math.max(order.items.length - visibleItems.length, 0);
 
   return (
-    <div className="glass p-8 md:p-10 rounded-[2.5rem] flex flex-col gap-10 border border-black/5 shadow-xl bg-white/50 hover:border-primary/20 transition-all">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-6 border-b border-black/5 pb-8">
-        <div>
-          <div className="flex items-center gap-4 mb-2">
-            <span className="font-bold text-2xl text-foreground">{order.id}</span>
-            <span className={cn(
-              "text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest",
-              order.status === "Delivered" ? "bg-green-500/10 text-green-600 border border-green-500/20" : "bg-primary/10 text-primary border border-primary/20 animate-pulse"
-            )}>{order.status}</span>
+    <motion.article
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-[1.75rem] border border-black/6 bg-white/70 p-5 shadow-[0_18px_40px_rgba(28,18,12,0.08)] transition-all hover:border-primary/15"
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xl font-bold tracking-tight text-foreground">{order.id}</span>
+            <span
+              className={cn(
+                "rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]",
+                order.status === "Delivered"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-primary/20 bg-primary/10 text-primary"
+              )}
+            >
+              {order.status}
+            </span>
           </div>
-          <p className="text-muted text-sm font-medium flex items-center gap-2"><Clock className="w-4 h-4 opacity-50" /> {order.date} • {order.items}</p>
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <Clock className="h-4 w-4 opacity-50" />
+            <span>{order.date}</span>
+            <span className="text-black/20">•</span>
+            <span>{order.productCount} products</span>
+            <span className="text-black/20">•</span>
+            <span>{order.unitCount} units</span>
+          </p>
         </div>
-        <div className="flex flex-col md:items-end gap-1">
-          <span className="font-bold text-3xl text-foreground">{order.total}</span>
-          <button className="text-primary font-bold text-xs uppercase tracking-widest hover:underline decoration-2 underline-offset-4">Digital Invoice</button>
+        <div className="flex items-center gap-3 md:flex-col md:items-end md:gap-1">
+          <span className="text-2xl font-bold tracking-tight text-foreground">{order.total}</span>
+          <button className="text-xs font-bold uppercase tracking-[0.18em] text-primary hover:underline">
+            Invoice
+          </button>
         </div>
       </div>
 
-      <div className="relative py-8 px-4">
-        <div className="absolute top-1/2 left-0 w-full h-1.5 bg-black/5 -translate-y-1/2 rounded-full" />
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${progressWidth}%` }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-          className="absolute top-1/2 left-0 h-1.5 bg-primary -translate-y-1/2 rounded-full shadow-[0_0_20px_rgba(198,156,109,0.4)]"
-        />
+      <div className="mt-5 border-t border-black/6 pt-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Products</p>
+          {hiddenCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => setExpanded((current) => !current)}
+              className="text-xs font-semibold text-muted transition-colors hover:text-primary"
+            >
+              {expanded ? "Show less" : `Show ${hiddenCount} more`}
+            </button>
+          ) : null}
+        </div>
 
-        <div className="relative z-10 flex justify-between">
-          {order.steps.map((step, stepIdx) => {
-            const isCompleted = stepIdx <= order.currentStep;
-            const isCurrent = stepIdx === order.currentStep;
-
-            return (
-              <div key={step} className="flex flex-col items-center gap-4 w-20">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: stepIdx * 0.15 }}
-                  className={cn(
-                    "w-10 h-10 rounded-2xl flex items-center justify-center border-4 transition-all duration-500",
-                    isCompleted ? "bg-primary border-white shadow-xl" : "bg-white border-black/5",
-                    isCurrent && order.status !== "Delivered" && "shadow-[0_0_30px_rgba(198,156,109,0.5)] scale-125"
-                  )}
-                >
-                  {isCompleted ? <CheckCircle2 className="w-5 h-5 text-white" /> : <div className="w-2.5 h-2.5 rounded-full bg-black/10" />}
-                </motion.div>
-                <span className={cn(
-                  "text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-center",
-                  isCompleted ? "text-foreground" : "text-muted",
-                  isCurrent && "text-primary"
-                )}>{step}</span>
+        <ul className="space-y-2">
+          {visibleItems.map((item, index) => (
+            <li
+              key={`${item.name}-${item.variant}-${index}`}
+              className="flex items-center justify-between gap-3 rounded-2xl bg-black/5 px-3 py-2.5"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
+                <p className="truncate text-xs text-muted">{item.variant}</p>
               </div>
-            );
-          })}
-        </div>
+              <div className="shrink-0 text-right">
+                <p className="text-sm font-semibold text-foreground">x{item.quantity}</p>
+                <p className="text-xs text-muted">{formatCurrency(item.price)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        {hiddenCount > 0 && !expanded ? (
+          <p className="mt-3 text-xs text-muted">+{hiddenCount} more items in this order</p>
+        ) : null}
       </div>
-    </div>
+    </motion.article>
   );
 };
 
@@ -298,15 +323,6 @@ export default function ProfilePage() {
       isDefault: false,
     });
     setFormError("");
-  };
-
-  const loadAddresses = async () => {
-    try {
-      const userAddresses = await getUserAddresses();
-      setAddresses(userAddresses);
-    } catch (error) {
-      console.warn("Unable to load saved addresses", error);
-    }
   };
 
   const submitAddressForm = async () => {
@@ -491,7 +507,7 @@ export default function ProfilePage() {
         >
           {activeTab === "orders" && (
             <div className="space-y-8">
-              <h2 className="text-3xl font-serif font-bold mb-8 text-foreground">Active <span className="gradient-text italic">Shipments</span></h2>
+              <h2 className="text-3xl font-serif font-bold mb-8 text-foreground">Order <span className="gradient-text italic">History</span></h2>
               {orderEntries.length === 0 && !ordersLoading ? (
                 <div className="rounded-[2rem] border border-black/6 bg-white/50 p-10 text-center shadow-xl">
                   <p className="text-lg font-semibold text-foreground">No order history yet</p>

@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Menu, X, User, Heart, ArrowRight, LogOut } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ShoppingCart, Menu, X, User, Heart, ArrowRight, LogOut, Package } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { cn } from "@/lib/utils";
@@ -21,14 +21,23 @@ const NAV_LINKS = [
   { name: "Shop", href: "/shop" },
 ];
 
+const PROFILE_MENU_ITEMS = [
+  { label: "Profile", href: "/profile", icon: User },
+  { label: "Orders", href: "/profile?tab=orders", icon: Package },
+  { label: "Favorites", href: "/favorites", icon: Heart },
+];
+
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionUserName, setSessionUserName] = useState("");
   const { cartCount, favorites } = useCart();
   const pathname = usePathname();
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const mobileProfileMenuRef = useRef<HTMLDivElement | null>(null);
   const favoritesCount = Array.isArray(favorites) ? favorites.length : 0;
 
   useEffect(() => {
@@ -71,12 +80,44 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const desktopMenu = profileMenuRef.current;
+      const mobileMenu = mobileProfileMenuRef.current;
+
+      if (desktopMenu && desktopMenu.contains(target)) return;
+      if (mobileMenu && mobileMenu.contains(target)) return;
+      setIsProfileMenuOpen(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsProfileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
   const profileHref = isAuthenticated ? "/profile" : `/login?returnTo=${encodeURIComponent(pathname || "/")}`;
   const accountLabel = sessionUserName.trim() || "Account";
   const accountInitial = accountLabel.charAt(0).toUpperCase() || "A";
+  const getMenuHref = (label: string, href: string) => {
+    if (isAuthenticated) return href;
+    if (["Favorites"].includes(label)) return href;
+    return profileHref;
+  };
 
   const handleLogout = () => {
     clearSession({ resetGuestSession: true });
+    setIsProfileMenuOpen(false);
     router.push("/");
   };
 
@@ -147,34 +188,6 @@ export default function Navbar() {
 
           {/* Desktop Icons */}
           <div className="hidden items-center gap-2 lg:flex md:gap-3">
-            {isAuthenticated ? (
-              <>
-                <Link
-                  href={profileHref}
-                  className="inline-flex items-center gap-3 rounded-2xl border border-black/8 bg-white/70 px-3 py-2.5 text-foreground/80 transition-all duration-300 hover:border-primary/20 hover:text-primary"
-                >
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/12 text-xs font-black text-primary">
-                    {accountInitial}
-                  </span>
-                  <span className="max-w-[120px] truncate text-sm font-semibold">{accountLabel}</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-black/8 bg-white/70 px-3 py-2.5 text-sm font-semibold text-foreground/75 transition-all duration-300 hover:border-primary/20 hover:text-primary"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </>
-            ) : (
-              <Link
-                href={profileHref}
-                className="rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
-              >
-                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </Link>
-            )}
             <Link
               href="/favorites"
               className="relative rounded-2xl p-2.5 text-foreground/70 transition-all duration-300 hover:bg-black/5 hover:text-primary group"
@@ -195,25 +208,170 @@ export default function Navbar() {
                 </span>
               )}
             </Link>
+            <div ref={profileMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+                className={cn(
+                  "inline-flex items-center gap-2 rounded-2xl border bg-white/70 px-3 py-2 text-left text-foreground/80 transition-all duration-300 hover:border-primary/20 hover:text-primary",
+                  isAuthenticated ? "border-black/8" : "border-transparent"
+                )}
+              >
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/12 text-xs font-black text-primary">
+                  {isAuthenticated ? accountInitial : <User className="h-4 w-4" />}
+                </span>
+                <span className="truncate text-sm font-semibold">{isAuthenticated ? accountLabel : "Sign in"}</span>
+              </button>
+
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute right-0 top-full z-[120] mt-3 w-[235px] overflow-hidden rounded-[1.15rem] border border-black/8 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(251,247,241,0.98)_100%)] shadow-[0_16px_36px_rgba(28,18,12,0.14)] backdrop-blur-md"
+                  >
+                    <div className="border-b border-black/6 px-4 py-3">
+                      <p className="text-[9px] font-black uppercase tracking-[0.24em] text-primary">Account</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{isAuthenticated ? accountLabel : "Guest"}</p>
+                    </div>
+
+                    <div className="max-h-[280px] overflow-y-auto p-1.5">
+                      {PROFILE_MENU_ITEMS.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.label}
+                            href={getMenuHref(item.label, item.href)}
+                            onClick={() => setIsProfileMenuOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm transition-colors hover:bg-black/5",
+                              !isAuthenticated && item.label !== "Support" && "opacity-70"
+                            )}
+                          >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                              <Icon className="h-3.5 w-3.5" />
+                            </span>
+                            <span className="min-w-0 font-medium text-foreground">{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+
+                    <div className="border-t border-black/6 p-1.5">
+                      {isAuthenticated ? (
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-3 rounded-[0.95rem] bg-red-50 px-3 py-2.5 text-left text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 text-red-700">
+                            <LogOut className="h-3.5 w-3.5" />
+                          </span>
+                          Logout
+                        </button>
+                      ) : (
+                        <Link
+                          href={profileHref}
+                          onClick={() => setIsProfileMenuOpen(false)}
+                          className="flex w-full items-center gap-3 rounded-[0.95rem] bg-primary px-3 py-2.5 text-left text-sm font-semibold text-white transition-colors hover:bg-foreground"
+                        >
+                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/15 text-white">
+                            <LogOut className="h-3.5 w-3.5 rotate-180" />
+                          </span>
+                          Sign in
+                        </Link>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Mobile: Icons + Hamburger */}
           <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href={profileHref}
-              className={cn(
-                "rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary",
-                isAuthenticated && "border border-black/8 bg-white/70"
-              )}
-            >
-              {isAuthenticated ? (
-                <span className="flex h-5 w-5 items-center justify-center text-[10px] font-black text-primary">
-                  {accountInitial}
-                </span>
-              ) : (
-                <User className="h-5 w-5" />
-              )}
-            </Link>
+            <div ref={mobileProfileMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                aria-haspopup="menu"
+                aria-expanded={isProfileMenuOpen}
+                className={cn(
+                  "rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary",
+                  isAuthenticated && "border border-black/8 bg-white/70"
+                )}
+              >
+                {isAuthenticated ? (
+                  <span className="flex h-5 w-5 items-center justify-center text-[10px] font-black text-primary">
+                    {accountInitial}
+                  </span>
+                ) : (
+                  <User className="h-5 w-5" />
+                )}
+              </button>
+
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full z-[120] mt-2 w-[220px] overflow-hidden rounded-[1.1rem] border border-black/8 bg-[linear-gradient(180deg,_rgba(255,255,255,0.98)_0%,_rgba(251,247,241,0.98)_100%)] p-1.5 shadow-[0_14px_32px_rgba(28,18,12,0.14)] backdrop-blur-md"
+                  >
+                    <Link
+                      href={profileHref}
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-[0.9rem] px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-black/5"
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <User className="h-3.5 w-3.5" />
+                      </span>
+                      {isAuthenticated ? "My profile" : "Sign in"}
+                    </Link>
+                    <Link
+                      href={isAuthenticated ? "/profile?tab=orders" : profileHref}
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-[0.9rem] px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-black/5"
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Package className="h-3.5 w-3.5" />
+                      </span>
+                      Orders
+                    </Link>
+                    <Link
+                      href="/favorites"
+                      onClick={() => setIsProfileMenuOpen(false)}
+                      className="flex items-center gap-3 rounded-[0.9rem] px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-black/5"
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <Heart className="h-3.5 w-3.5" />
+                      </span>
+                      Favorites
+                    </Link>
+                    {isAuthenticated && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleLogout();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="mt-1 flex w-full items-center gap-3 rounded-[0.9rem] bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100"
+                      >
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-100 text-red-700">
+                          <LogOut className="h-3.5 w-3.5" />
+                        </span>
+                        Logout
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <Link
               href="/favorites"
               className="relative rounded-2xl p-2.5 text-foreground/75 transition-colors hover:bg-black/5 hover:text-primary"
