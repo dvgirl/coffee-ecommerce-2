@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { Mail, MapPin, MessageCircle, Phone, Send, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ContactPage() {
@@ -18,14 +19,14 @@ export default function ContactPage() {
   }, [name, email, message]);
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-6 py-12 md:px-12 md:py-16">
-      <div className="rounded-[2.2rem] border border-black/6 bg-coffee-light/20 p-8 md:p-10">
+    <main className="page-shell mx-auto w-full max-w-6xl px-6 md:px-12">
+      <div className="rounded-[2.2rem] border border-black/6 bg-coffee-light/20 p-8 shadow-[0_22px_60px_rgba(42,28,22,0.08)] md:p-10">
         <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary">Support</p>
         <h1 className="mt-4 text-4xl font-bold tracking-[-0.04em] text-foreground md:text-5xl">
           Contact us
         </h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-muted md:text-base">
-          Questions about an order, shipping, or subscriptions? Send a message and we’ll get back to you.
+          Questions about an order, roast profile, subscription, delivery, or gifting? Send us the details and our coffee care team will get back to you.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/faq" className="rounded-full border border-black/10 bg-white px-6 py-3 text-xs font-black uppercase tracking-[0.18em] text-foreground transition hover:border-primary/30 hover:text-primary">
@@ -38,14 +39,14 @@ export default function ContactPage() {
       </div>
 
       <section className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="rounded-[1.9rem] border border-black/6 bg-background p-6">
+        <div className="rounded-[1.9rem] border border-black/6 bg-background p-6 shadow-sm">
           <h2 className="text-lg font-bold text-foreground">Send a message</h2>
-          <p className="mt-2 text-sm text-muted">This is a simple local form UI. Hook it up to an email/ticketing backend anytime.</p>
+          <p className="mt-2 text-sm text-muted">For order support, include your order code so we can find the shipment quickly.</p>
 
           {sent ? (
             <div className="mt-6 rounded-[1.4rem] border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
-              <p className="font-semibold">Message saved</p>
-              <p className="mt-2 text-sm">Thanks. We’ll respond to the email you provided.</p>
+              <p className="font-semibold">Message received</p>
+              <p className="mt-2 text-sm">Thanks. We will respond to the email you provided.</p>
             </div>
           ) : (
             <form
@@ -81,7 +82,7 @@ export default function ContactPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   rows={6}
                   className="mt-2 w-full resize-none rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm leading-6 outline-none transition focus:border-primary/40 focus:ring-4 focus:ring-primary/10"
-                  placeholder="Tell us what you need help with…"
+                  placeholder="Tell us what you need help with..."
                 />
               </label>
               <button
@@ -94,19 +95,37 @@ export default function ContactPage() {
                     : "bg-primary text-white shadow-lg hover:bg-primary-dark",
                 )}
               >
-                Submit
+                <span className="inline-flex items-center justify-center gap-2">
+                  Submit <Send className="h-4 w-4" />
+                </span>
               </button>
             </form>
           )}
         </div>
 
-        <div className="rounded-[1.9rem] border border-black/6 bg-background p-6">
-          <h2 className="text-lg font-bold text-foreground">Fast help</h2>
-          <p className="mt-2 text-sm text-muted">Before you send a message, these usually solve it.</p>
-          <div className="mt-6 space-y-3">
+        <div className="rounded-[1.9rem] border border-black/6 bg-background p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-foreground">Coffee care desk</h2>
+          <p className="mt-2 text-sm text-muted">Reach us for order tracking, bean selection, brewing guidance, and business gifting.</p>
+          <div className="mt-6 grid gap-3">
             <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
-              <p className="font-semibold text-foreground">Order issues</p>
-              <p className="mt-2 text-sm leading-6 text-muted">Include your order code and what went wrong (missing items, address correction, damage, etc.).</p>
+              <p className="flex items-center gap-2 font-semibold text-foreground"><Mail className="h-4 w-4 text-primary" /> Email</p>
+              <p className="mt-2 text-sm leading-6 text-muted">support@auracoffee.example</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
+              <p className="flex items-center gap-2 font-semibold text-foreground"><Phone className="h-4 w-4 text-primary" /> Phone</p>
+              <p className="mt-2 text-sm leading-6 text-muted">+91 98765 43210</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
+              <p className="flex items-center gap-2 font-semibold text-foreground"><Timer className="h-4 w-4 text-primary" /> Hours</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Monday to Saturday, 10:00 AM - 7:00 PM</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
+              <p className="flex items-center gap-2 font-semibold text-foreground"><MapPin className="h-4 w-4 text-primary" /> Roastery</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Aura Coffee Roasters, Ahmedabad, Gujarat, India</p>
+            </div>
+            <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
+              <p className="flex items-center gap-2 font-semibold text-foreground"><MessageCircle className="h-4 w-4 text-primary" /> Order issues</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Include your order code and what went wrong, such as missing items, address correction, or product damage.</p>
             </div>
             <div className="rounded-[1.4rem] border border-black/6 bg-coffee-light/20 p-4">
               <p className="font-semibold text-foreground">Shipping questions</p>
@@ -121,4 +140,3 @@ export default function ContactPage() {
     </main>
   );
 }
-

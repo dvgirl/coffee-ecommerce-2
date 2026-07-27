@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import { motion } from "framer-motion";
-import { User, Package, Ticket, Settings, LogOut, Clock, MapPin, CreditCard, Award, Leaf, Coffee } from "lucide-react";
+import Image from "next/image";
+import { User, Package, Ticket, Settings, LogOut, Clock, MapPin, CreditCard, Award, Leaf, Coffee, ChevronDown, CheckCircle2, Truck, ReceiptText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,53 @@ import {
 import { getOrders, type OrderItem, type OrderRecord } from "@/lib/order-api";
 
 const ORDERS = [
-  { id: "AURA-2024-089", date: "Today, 09:42 AM", status: "Roasting", total: "₹56.00", items: "Midnight Onyx, Colombian Supremo", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 1 },
-  { id: "AURA-2024-042", date: "Sep 12, 2024", status: "Delivered", total: "₹28.00", items: "Ethiopian Yirgacheffe", steps: ["Received", "Roasting", "Packaging", "Shipped", "Delivered"], currentStep: 4 },
+  {
+    id: 89,
+    orderCode: "AURA-2024-0089",
+    createdAt: "2024-09-20T09:42:00.000Z",
+    updatedAt: "2024-09-20T11:30:00.000Z",
+    status: "Roasting",
+    eta: "Currently in the roaster",
+    total: 56,
+    subtotal: 48,
+    shippingFee: 5,
+    tax: 3,
+    items: [
+      { productId: 1, name: "Midnight Onyx", variant: "Whole Bean / 250g", quantity: 1, price: 28, image: "/products/kenya-aa.png" },
+      { productId: 2, name: "Colombian Supremo", variant: "Medium Grind / 250g", quantity: 1, price: 20, image: "/products/kashmiri-saffron.png" },
+    ],
+    shipping: {
+      name: "Aura Member",
+      email: "customer@example.com",
+      phone: "+91 98765 43210",
+      address: "123 Coffee Bean Way",
+      city: "Ahmedabad",
+      zip: "380001",
+    },
+  },
+  {
+    id: 42,
+    orderCode: "AURA-2024-0042",
+    createdAt: "2024-09-12T10:15:00.000Z",
+    updatedAt: "2024-09-15T16:20:00.000Z",
+    status: "Delivered",
+    eta: "Delivered successfully",
+    total: 28,
+    subtotal: 23,
+    shippingFee: 3,
+    tax: 2,
+    items: [
+      { productId: 3, name: "Ethiopian Yirgacheffe", variant: "Whole Bean / 250g", quantity: 1, price: 23, image: "/products/himalayan-oolong.png" },
+    ],
+    shipping: {
+      name: "Aura Member",
+      email: "customer@example.com",
+      phone: "+91 98765 43210",
+      address: "123 Coffee Bean Way",
+      city: "Ahmedabad",
+      zip: "380001",
+    },
+  },
 ] as unknown as OrderRecord[];
 
 const COUPONS = [
@@ -33,6 +79,12 @@ type NormalizedOrderEntry = {
   status: string;
   date: string;
   total: string;
+  eta: string;
+  subtotal: string;
+  shippingFee: string;
+  tax: string;
+  paymentMethod: string;
+  shippingAddress: string;
   items: Array<{
     name: string;
     variant: string;
@@ -42,6 +94,13 @@ type NormalizedOrderEntry = {
   }>;
   productCount: number;
   unitCount: number;
+  steps: Array<{
+    label: string;
+    title: string;
+    detail: string;
+    date: string;
+  }>;
+  currentStep: number;
 };
 
 type OrderEntrySource = Partial<OrderRecord> & {
@@ -49,6 +108,36 @@ type OrderEntrySource = Partial<OrderRecord> & {
   createdAt?: string;
   date?: string;
   orderCode?: string | number;
+  subtotal?: number | string;
+  shippingFee?: number | string;
+  tax?: number | string;
+  eta?: string;
+  paymentMethod?: string;
+};
+
+const TRACKING_FLOW = ["Received", "Roasting", "Packaging", "Shipped", "Delivered"];
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(value);
+
+const toDisplayDate = (value?: string) =>
+  value
+    ? new Date(value).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Update pending";
+
+const toMoney = (value: number | string | undefined, fallback = "₹0.00") => {
+  if (typeof value === "number") return formatCurrency(value);
+  return value || fallback;
 };
 
 const normalizeOrderEntry = (order: OrderEntrySource): NormalizedOrderEntry => {
@@ -61,22 +150,63 @@ const normalizeOrderEntry = (order: OrderEntrySource): NormalizedOrderEntry => {
         image: item.image ?? null,
       }))
     : [];
-  const date = typeof order.date === "string"
-    ? order.date
-    : order.createdAt
-      ? new Date(order.createdAt).toLocaleString()
-      : "Unknown date";
-  const total = typeof order.total === "number"
-    ? `₹${order.total.toFixed(2)}`
-    : order.total || "₹0.00";
+  const status = order.status ?? "Received";
+  const date = typeof order.date === "string" ? order.date : toDisplayDate(order.createdAt);
+  const activeStep = TRACKING_FLOW.includes(status) ? TRACKING_FLOW.indexOf(status) : 0;
+  const isStopped = status === "Cancelled" || status === "Refunded";
+  const currentStep = isStopped ? 0 : activeStep;
+  const shipping = order.shipping;
+  const shippingAddress = shipping
+    ? [shipping.address, shipping.city, shipping.zip].filter(Boolean).join(", ")
+    : "Shipping address will appear after checkout";
+  const steps = TRACKING_FLOW.map((label, index) => ({
+    label,
+    title:
+      label === "Received"
+        ? "Order placed"
+        : label === "Roasting"
+          ? "Beans in roast queue"
+          : label === "Packaging"
+            ? "Packed for dispatch"
+            : label === "Shipped"
+              ? "Handed to courier"
+              : "Delivered",
+    detail:
+      label === "Received"
+        ? "We confirmed your order and payment details."
+        : label === "Roasting"
+          ? "Your coffee is being roasted or prepared in small batches."
+          : label === "Packaging"
+            ? "Quality check, sealing, and label printing are underway."
+            : label === "Shipped"
+              ? "Your parcel is moving through the courier network."
+              : "The package has reached the delivery address.",
+    date:
+      index <= currentStep
+        ? index === 0
+          ? date
+          : index === currentStep
+            ? toDisplayDate(order.updatedAt || order.createdAt)
+            : "Completed"
+        : "Pending",
+  }));
+
   return {
     id: String(order.orderCode ?? order.id ?? "order"),
-    status: order.status ?? "Received",
+    status,
     date,
-    total,
+    total: toMoney(order.total),
+    eta: order.eta || (status === "Delivered" ? "Delivered successfully" : "Preparing your roast"),
+    subtotal: toMoney(order.subtotal),
+    shippingFee: toMoney(order.shippingFee),
+    tax: toMoney(order.tax),
+    paymentMethod: order.paymentMethod || "Card",
+    shippingAddress,
     items,
     productCount: items.length,
     unitCount: items.reduce((count, item) => count + item.quantity, 0),
+    steps,
+    currentStep,
   };
 };
 
@@ -127,92 +257,172 @@ const UserTasteRadar = () => {
   );
 };
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(value);
-
 const OrderTimeline = ({ order }: { order: ReturnType<typeof normalizeOrderEntry> }) => {
   const [expanded, setExpanded] = useState(false);
-  const visibleItems = expanded ? order.items : order.items.slice(0, 3);
-  const hiddenCount = Math.max(order.items.length - visibleItems.length, 0);
+  const leadItem = order.items[0];
+  const imageSrc = leadItem?.image || "/products/kenya-aa.png";
+  const statusStyle =
+    order.status === "Delivered"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : order.status === "Cancelled" || order.status === "Refunded"
+        ? "border-red-200 bg-red-50 text-red-700"
+        : "border-primary/20 bg-primary/10 text-primary";
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[1.75rem] border border-black/6 bg-white/70 p-5 shadow-[0_18px_40px_rgba(28,18,12,0.08)] transition-all hover:border-primary/15"
+      tabIndex={0}
+      role="button"
+      aria-expanded={expanded}
+      onClick={() => setExpanded((current) => !current)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setExpanded((current) => !current);
+        }
+      }}
+      className="cursor-pointer rounded-[1.75rem] border border-black/6 bg-white/75 p-4 shadow-[0_18px_40px_rgba(28,18,12,0.08)] transition-all hover:border-primary/20 hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/10 sm:p-5"
     >
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xl font-bold tracking-tight text-foreground">{order.id}</span>
-            <span
-              className={cn(
-                "rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]",
-                order.status === "Delivered"
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                  : "border-primary/20 bg-primary/10 text-primary"
-              )}
-            >
-              {order.status}
+      <div className="grid gap-5 md:grid-cols-[150px_1fr]">
+        <div className="relative h-40 overflow-hidden rounded-[1.35rem] border border-black/6 bg-coffee-light/30 md:h-full md:min-h-[170px]">
+          <Image
+            src={imageSrc}
+            alt={leadItem?.name || "Aura product"}
+            fill
+            sizes="(max-width: 768px) 100vw, 150px"
+            className="object-contain p-4"
+          />
+          {order.productCount > 1 ? (
+            <span className="absolute bottom-3 right-3 rounded-full bg-coffee-dark px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-lg">
+              +{order.productCount - 1} more
             </span>
-          </div>
-          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-            <Clock className="h-4 w-4 opacity-50" />
-            <span>{order.date}</span>
-            <span className="text-black/20">•</span>
-            <span>{order.productCount} products</span>
-            <span className="text-black/20">•</span>
-            <span>{order.unitCount} units</span>
-          </p>
-        </div>
-        <div className="flex items-center gap-3 md:flex-col md:items-end md:gap-1">
-          <span className="text-2xl font-bold tracking-tight text-foreground">{order.total}</span>
-          <button className="text-xs font-bold uppercase tracking-[0.18em] text-primary hover:underline">
-            Invoice
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-5 border-t border-black/6 pt-4">
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-primary">Products</p>
-          {hiddenCount > 0 ? (
-            <button
-              type="button"
-              onClick={() => setExpanded((current) => !current)}
-              className="text-xs font-semibold text-muted transition-colors hover:text-primary"
-            >
-              {expanded ? "Show less" : `Show ${hiddenCount} more`}
-            </button>
           ) : null}
         </div>
 
-        <ul className="space-y-2">
-          {visibleItems.map((item, index) => (
-            <li
-              key={`${item.name}-${item.variant}-${index}`}
-              className="flex items-center justify-between gap-3 rounded-2xl bg-black/5 px-3 py-2.5"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
-                <p className="truncate text-xs text-muted">{item.variant}</p>
+        <div className="min-w-0">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xl font-bold tracking-tight text-foreground">{order.id}</span>
+                <span className={cn("rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em]", statusStyle)}>
+                  {order.status}
+                </span>
               </div>
-              <div className="shrink-0 text-right">
-                <p className="text-sm font-semibold text-foreground">x{item.quantity}</p>
-                <p className="text-xs text-muted">{formatCurrency(item.price)}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
+              <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+                <Clock className="h-4 w-4 opacity-50" />
+                <span>{order.date}</span>
+                <span className="text-black/20">|</span>
+                <span>{order.productCount} products</span>
+                <span className="text-black/20">|</span>
+                <span>{order.unitCount} units</span>
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-1">
+              <span className="text-2xl font-bold tracking-tight text-foreground">{order.total}</span>
+              <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-[0.18em] text-primary">
+                {expanded ? "Hide tracking" : "View tracking"}
+                <ChevronDown className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")} />
+              </span>
+            </div>
+          </div>
 
-        {hiddenCount > 0 && !expanded ? (
-          <p className="mt-3 text-xs text-muted">+{hiddenCount} more items in this order</p>
-        ) : null}
+          <div className="mt-5 rounded-[1.35rem] border border-black/6 bg-coffee-light/20 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-foreground">{leadItem?.name || "Aura coffee order"}</p>
+                <p className="mt-1 text-sm text-muted">{leadItem?.variant || "Freshly packed"} {leadItem ? `x ${leadItem.quantity}` : ""}</p>
+              </div>
+              <p className="text-sm font-semibold text-primary">{order.eta}</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {expanded ? (
+        <div className="mt-5 border-t border-black/6 pt-5">
+          <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+            <div className="rounded-[1.35rem] border border-black/6 bg-background p-5">
+              <p className="mb-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
+                <Truck className="h-4 w-4" /> Tracking details
+              </p>
+              <div className="space-y-5">
+                {order.steps.map((step, index) => {
+                  const complete = index <= order.currentStep && !["Cancelled", "Refunded"].includes(order.status);
+                  const active = index === order.currentStep && !["Cancelled", "Refunded"].includes(order.status);
+
+                  return (
+                    <div key={step.label} className="grid grid-cols-[28px_1fr] gap-3">
+                      <div className="flex flex-col items-center">
+                        <span className={cn("flex h-7 w-7 items-center justify-center rounded-full border text-white", complete ? "border-primary bg-primary" : "border-black/10 bg-white")}>
+                          {complete ? <CheckCircle2 className="h-4 w-4" /> : <span className="h-2 w-2 rounded-full bg-black/15" />}
+                        </span>
+                        {index < order.steps.length - 1 ? (
+                          <span className={cn("mt-2 h-full min-h-8 w-px", index < order.currentStep ? "bg-primary/40" : "bg-black/10")} />
+                        ) : null}
+                      </div>
+                      <div className="pb-2">
+                        <p className={cn("text-sm font-bold", active || complete ? "text-foreground" : "text-muted")}>{step.title}</p>
+                        <p className="mt-1 text-xs leading-5 text-muted">{step.detail}</p>
+                        <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-primary/80">{step.date}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-[1.35rem] border border-black/6 bg-background p-5">
+                <p className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
+                  <MapPin className="h-4 w-4" /> Delivery
+                </p>
+                <p className="text-sm leading-6 text-muted">{order.shippingAddress}</p>
+                <p className="mt-3 text-xs font-semibold text-foreground">Payment: {order.paymentMethod}</p>
+              </div>
+
+              <div className="rounded-[1.35rem] border border-black/6 bg-background p-5">
+                <p className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-primary">
+                  <ReceiptText className="h-4 w-4" /> Price details
+                </p>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between gap-4 text-muted"><span>Subtotal</span><span>{order.subtotal}</span></div>
+                  <div className="flex justify-between gap-4 text-muted"><span>Shipping</span><span>{order.shippingFee}</span></div>
+                  <div className="flex justify-between gap-4 text-muted"><span>Tax</span><span>{order.tax}</span></div>
+                  <div className="border-t border-black/6 pt-2 font-bold text-foreground">
+                    <div className="flex justify-between gap-4"><span>Total</span><span>{order.total}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-[1.35rem] border border-black/6 bg-background p-5">
+            <p className="mb-4 text-[10px] font-black uppercase tracking-[0.22em] text-primary">Items in this order</p>
+            <ul className="grid gap-3 md:grid-cols-2">
+              {order.items.map((item, index) => (
+                <li key={`${item.name}-${item.variant}-${index}`} className="flex items-center gap-3 rounded-2xl bg-black/5 p-3">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white">
+                    <Image
+                      src={item.image || "/products/kenya-aa.png"}
+                      alt={item.name}
+                      fill
+                      sizes="64px"
+                      className="object-contain p-2"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">{item.name}</p>
+                    <p className="truncate text-xs text-muted">{item.variant}</p>
+                    <p className="mt-1 text-xs text-muted">Qty {item.quantity}</p>
+                  </div>
+                  <p className="shrink-0 text-sm font-semibold text-foreground">{formatCurrency(item.price)}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      ) : null}
     </motion.article>
   );
 };
