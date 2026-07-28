@@ -209,51 +209,35 @@ export default function ShopClient() {
   };
 
   return (
-    <div className="page-shell container mx-auto min-h-screen px-5 md:px-12">
-      <section className="rounded-[2.5rem] border border-black/6 bg-[linear-gradient(180deg,_rgba(245,235,225,0.65)_0%,_rgba(255,255,255,0.92)_100%)] px-6 py-8 shadow-[0_24px_60px_rgba(42,28,22,0.07)] md:px-8">
-        <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
-              <Coffee className="h-3.5 w-3.5" />
-              Coffee catalog API
-            </div>
-            <h1 className="mt-4 text-4xl font-bold tracking-[-0.05em] text-foreground md:text-5xl">
-              Fresh coffee. API powered.
-            </h1>
-            <p className="mt-3 max-w-xl text-sm leading-7 text-muted md:text-base">
-              Browse live products from the backend with infinite scrolling in batches of 10.
-            </p>
-          </div>
+    <div className="page-shell container mx-auto min-h-screen px-4 sm:px-6 md:px-12">
+      {/* Search Header */}
+      <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
+        <label className="relative flex-1 w-full">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search origin, notes, or coffee name..."
+            className="w-full rounded-2xl border border-black/8 bg-white/90 px-11 py-3 text-sm text-foreground outline-none transition-all focus:border-primary/40 focus:bg-white shadow-sm"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={() => {
+            setCategory("All");
+            setSearch("");
+            setSort("featured");
+            setInStockOnly(false);
+            setMinPrice("0");
+            setMaxPrice("100");
+          }}
+          className="w-full sm:w-auto rounded-2xl border border-black/8 bg-white px-5 py-3 text-sm font-semibold text-foreground transition-all hover:border-primary/30 hover:bg-black/5"
+        >
+          Reset
+        </button>
+      </div>
 
-          <div className="flex w-full max-w-xl flex-col gap-3 md:flex-row">
-            <label className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search origin, notes, or coffee name"
-                className="w-full rounded-2xl border border-black/8 bg-white px-12 py-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary/40"
-              />
-            </label>
-            <button
-              type="button"
-              onClick={() => {
-                setCategory("All");
-                setSearch("");
-                setSort("featured");
-                setInStockOnly(false);
-                setMinPrice("0");
-                setMaxPrice("100");
-              }}
-              className="rounded-2xl border border-black/8 bg-white px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/30"
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-8 grid gap-8 xl:grid-cols-[280px_1fr]">
+      <section className="grid gap-6 xl:grid-cols-[280px_1fr]">
         <aside className="space-y-6 rounded-[2rem] border border-black/6 bg-white/88 p-6 shadow-[0_18px_50px_rgba(42,28,22,0.05)]">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Category</p>

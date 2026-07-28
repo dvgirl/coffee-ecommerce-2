@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -597,10 +597,10 @@ export default function ProfilePage() {
   return (
     <div className="page-shell container mx-auto min-h-screen px-6 md:px-12">
       
-      {/* Command Center Top Section */}
+      {/* Command Center Top Section (Commented out as requested) */}
+      {/*
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
         
-        {/* User Identity Panel */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -620,7 +620,6 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Evolving Taste Profile */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -632,7 +631,6 @@ export default function ProfilePage() {
           <UserTasteRadar />
         </motion.div>
 
-        {/* Holographic Loyalty Badges */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -641,7 +639,6 @@ export default function ProfilePage() {
         >
           <h3 className="text-xl font-serif font-bold mb-8 text-foreground">Milestones</h3>
           <div className="space-y-5 w-full">
-            {/* Active Badge */}
             <div className="flex items-center gap-5 p-5 rounded-3xl bg-primary/5 border border-primary/10 relative overflow-hidden group shadow-sm transition-all hover:bg-primary/10">
               <div className="w-14 h-14 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                 <Leaf className="w-7 h-7" />
@@ -652,7 +649,6 @@ export default function ProfilePage() {
               </div>
             </div>
             
-            {/* Locked Badge */}
             <div className="flex items-center gap-5 p-5 rounded-3xl bg-black/5 border border-black/5 opacity-50 contrast-75 hover:opacity-80 transition-all cursor-not-allowed">
               <div className="w-14 h-14 rounded-2xl bg-black/10 flex items-center justify-center border border-black/10">
                 <Coffee className="w-7 h-7 text-muted" />
@@ -665,6 +661,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
+      */}
 
       <div className="flex flex-col md:flex-row gap-12">
         {/* Sidebar Navigation */}
